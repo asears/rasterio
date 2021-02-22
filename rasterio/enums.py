@@ -5,6 +5,7 @@ from enum import Enum, IntEnum
 
 class ColorInterp(IntEnum):
     """Raster band color interpretation."""
+
     undefined = 0
     gray = 1
     grey = 1
@@ -43,6 +44,7 @@ class Resampling(IntEnum):
 
     Note: 'gauss' is not available to the functions in rio.warp.
     """
+
     nearest = 0
     bilinear = 1
     cubic = 2
@@ -62,25 +64,26 @@ class Resampling(IntEnum):
 
 class Compression(Enum):
     """Available compression algorithms."""
-    jpeg = 'JPEG'
-    lzw = 'LZW'
-    packbits = 'PACKBITS'
-    deflate = 'DEFLATE'
-    ccittrle = 'CCITTRLE'
-    ccittfax3 = 'CCITTFAX3'
-    ccittfax4 = 'CCITTFAX4'
-    lzma = 'LZMA'
-    none = 'NONE'
-    zstd = 'ZSTD'
-    lerc = 'LERC'
-    webp = 'WEBP'
-    jpeg2000 = 'JPEG2000'
+
+    jpeg = "JPEG"
+    lzw = "LZW"
+    packbits = "PACKBITS"
+    deflate = "DEFLATE"
+    ccittrle = "CCITTRLE"
+    ccittfax3 = "CCITTFAX3"
+    ccittfax4 = "CCITTFAX4"
+    lzma = "LZMA"
+    none = "NONE"
+    zstd = "ZSTD"
+    lerc = "LERC"
+    webp = "WEBP"
+    jpeg2000 = "JPEG2000"
 
 
 class Interleaving(Enum):
-    pixel = 'PIXEL'
-    line = 'LINE'
-    band = 'BAND'
+    pixel = "PIXEL"
+    line = "LINE"
+    band = "BAND"
 
 
 class MaskFlags(IntEnum):
@@ -91,16 +94,18 @@ class MaskFlags(IntEnum):
 
 
 class PhotometricInterp(Enum):
-    black = 'MINISBLACK'
-    white = 'MINISWHITE'
-    rgb = 'RGB'
-    cmyk = 'CMYK'
-    ycbcr = 'YCbCr'
-    cielab = 'CIELAB'
-    icclab = 'ICCLAB'
-    itulab = 'ITULAB'
+    black = "MINISBLACK"
+    white = "MINISWHITE"
+    rgb = "RGB"
+    cmyk = "CMYK"
+    ycbcr = "YCbCr"
+    cielab = "CIELAB"
+    icclab = "ICCLAB"
+    itulab = "ITULAB"
+
 
 class MergeAlg(Enum):
     """Available rasterization algorithms"""
-    replace = 'REPLACE'
-    add = 'ADD'
+
+    replace = "REPLACE"
+    add = "ADD"

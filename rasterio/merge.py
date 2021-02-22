@@ -18,20 +18,20 @@ logger = logging.getLogger(__name__)
 
 
 def copy_first(old_data, new_data, old_nodata, new_nodata, **kwargs):
-    mask = np.empty_like(old_data, dtype='bool')
+    mask = np.empty_like(old_data, dtype="bool")
     np.logical_not(new_nodata, out=mask)
     np.logical_and(old_nodata, mask, out=mask)
     np.copyto(old_data, new_data, where=mask)
 
 
 def copy_last(old_data, new_data, old_nodata, new_nodata, **kwargs):
-    mask = np.empty_like(old_data, dtype='bool')
+    mask = np.empty_like(old_data, dtype="bool")
     np.logical_not(new_nodata, out=mask)
     np.copyto(old_data, new_data, where=mask)
 
 
 def copy_min(old_data, new_data, old_nodata, new_nodata, **kwargs):
-    mask = np.empty_like(old_data, dtype='bool')
+    mask = np.empty_like(old_data, dtype="bool")
     np.logical_or(old_nodata, new_nodata, out=mask)
     np.logical_not(mask, out=mask)
 
@@ -43,7 +43,7 @@ def copy_min(old_data, new_data, old_nodata, new_nodata, **kwargs):
 
 
 def copy_max(old_data, new_data, old_nodata, new_nodata, **kwargs):
-    mask = np.empty_like(old_data, dtype='bool')
+    mask = np.empty_like(old_data, dtype="bool")
     np.logical_or(old_nodata, new_nodata, out=mask)
     np.logical_not(mask, out=mask)
 
@@ -55,10 +55,10 @@ def copy_max(old_data, new_data, old_nodata, new_nodata, **kwargs):
 
 
 MERGE_METHODS = {
-    'first': copy_first,
-    'last': copy_last,
-    'min': copy_min,
-    'max': copy_max
+    "first": copy_first,
+    "last": copy_last,
+    "min": copy_min,
+    "max": copy_max,
 }
 
 
@@ -168,8 +168,11 @@ def merge(
     elif callable(method):
         copyto = method
     else:
-        raise ValueError('Unknown method {0}, must be one of {1} or callable'
-                         .format(method, list(MERGE_METHODS.keys())))
+        raise ValueError(
+            "Unknown method {0}, must be one of {1} or callable".format(
+                method, list(MERGE_METHODS.keys())
+            )
+        )
 
     # Create a dataset_opener object to use in several places in this function.
     if isinstance(datasets[0], str) or isinstance(datasets[0], Path):
@@ -270,21 +273,21 @@ def merge(
         inrange = False
         if np.issubdtype(dt, np.integer):
             info = np.iinfo(dt)
-            inrange = (info.min <= nodataval <= info.max)
+            inrange = info.min <= nodataval <= info.max
         elif np.issubdtype(dt, np.floating):
             if math.isnan(nodataval):
                 inrange = True
             else:
                 info = np.finfo(dt)
-                inrange = (info.min <= nodataval <= info.max)
+                inrange = info.min <= nodataval <= info.max
         if inrange:
             dest.fill(nodataval)
         else:
             warnings.warn(
                 "The nodata value, %s, is beyond the valid "
                 "range of the chosen data type, %s. Consider overriding it "
-                "using the --nodata option for better results." % (
-                    nodataval, dt))
+                "using the --nodata option for better results." % (nodataval, dt)
+            )
     else:
         nodataval = 0
 
@@ -330,7 +333,7 @@ def merge(
         # 5. Copy elements of temp into dest
         dst_window = dst_window.round_offsets(pixel_precision=0)
         roff, coff = dst_window.row_off, dst_window.col_off
-        region = dest[:, roff:roff + trows, coff:coff + tcols]
+        region = dest[:, roff : roff + trows, coff : coff + tcols]
 
         if math.isnan(nodataval):
             region_nodata = np.isnan(region)
@@ -338,8 +341,9 @@ def merge(
             region_nodata = region == nodataval
         temp_nodata = np.ma.getmaskarray(temp)
 
-        copyto(region, temp, region_nodata, temp_nodata,
-               index=idx, roff=roff, coff=coff)
+        copyto(
+            region, temp, region_nodata, temp_nodata, index=idx, roff=roff, coff=coff
+        )
 
     if dst_path is None:
         return dest, output_transform

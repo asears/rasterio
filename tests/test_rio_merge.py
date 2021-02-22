@@ -22,26 +22,25 @@ from .conftest import requires_gdal22, gdal_version
 
 
 # Fixture to create test datasets within temporary directory
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_1(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, -114,
-                                   0, -0.2, 46),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, -114, 0, -0.2, 46),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": 10,
         "height": 10,
-        "nodata": 1
+        "nodata": 1,
     }
 
-    with rasterio.open(str(tmpdir.join('b.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("b.tif")), "w", **kwargs) as dst:
         data = np.ones((10, 10), dtype=rasterio.uint8)
         data[0:6, 0:6] = 255
         dst.write(data, indexes=1)
 
-    with rasterio.open(str(tmpdir.join('a.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("a.tif")), "w", **kwargs) as dst:
         data = np.ones((10, 10), dtype=rasterio.uint8)
         data[4:8, 4:8] = 254
         dst.write(data, indexes=1)
@@ -49,12 +48,11 @@ def test_data_dir_1(tmpdir):
     return tmpdir
 
 
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_2(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, -114,
-                                   0, -0.2, 46),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, -114, 0, -0.2, 46),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
@@ -63,12 +61,12 @@ def test_data_dir_2(tmpdir):
         # these files have undefined nodata.
     }
 
-    with rasterio.open(str(tmpdir.join('b.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("b.tif")), "w", **kwargs) as dst:
         data = np.zeros((10, 10), dtype=rasterio.uint8)
         data[0:6, 0:6] = 255
         dst.write(data, indexes=1)
 
-    with rasterio.open(str(tmpdir.join('a.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("a.tif")), "w", **kwargs) as dst:
         data = np.zeros((10, 10), dtype=rasterio.uint8)
         data[4:8, 4:8] = 254
         dst.write(data, indexes=1)
@@ -76,26 +74,25 @@ def test_data_dir_2(tmpdir):
     return tmpdir
 
 
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_3(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, -114,
-                                   0, -0.2, 46),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, -114, 0, -0.2, 46),
         "count": 2,  # important: band count > 1
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": 10,
         "height": 10,
-        "nodata": 1
+        "nodata": 1,
     }
 
-    with rasterio.open(str(tmpdir.join('b.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("b.tif")), "w", **kwargs) as dst:
         data = np.ones((2, 10, 10), dtype=rasterio.uint8)
         data[:, 0:6, 0:6] = 255
         dst.write(data)
 
-    with rasterio.open(str(tmpdir.join('a.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("a.tif")), "w", **kwargs) as dst:
         data = np.ones((2, 10, 10), dtype=rasterio.uint8)
         data[:, 4:8, 4:8] = 254
         dst.write(data)
@@ -104,15 +101,15 @@ def test_data_dir_3(tmpdir):
 
 
 def test_merge_with_colormap(test_data_dir_1, runner):
-    outputname = str(test_data_dir_1.join('merged.tif'))
+    outputname = str(test_data_dir_1.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_1.listdir()]
     inputs.sort()
 
     for inputname in inputs:
-        with rasterio.open(inputname, 'r+') as src:
+        with rasterio.open(inputname, "r+") as src:
             src.write_colormap(1, {0: (255, 0, 0, 255), 255: (0, 0, 0, 255)})
 
-    result = runner.invoke(main_group, ['merge'] + inputs + [outputname])
+    result = runner.invoke(main_group, ["merge"] + inputs + [outputname])
     assert result.exit_code == 0
     assert os.path.exists(outputname)
 
@@ -122,13 +119,12 @@ def test_merge_with_colormap(test_data_dir_1, runner):
         assert cmap[255] == (0, 0, 0, 255)
 
 
-@requires_gdal22(
-    reason="This test is sensitive to pixel values and requires GDAL 2.2+")
+@requires_gdal22(reason="This test is sensitive to pixel values and requires GDAL 2.2+")
 def test_merge_with_nodata(test_data_dir_1, runner):
-    outputname = str(test_data_dir_1.join('merged.tif'))
+    outputname = str(test_data_dir_1.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_1.listdir()]
     inputs.sort()
-    result = runner.invoke(main_group, ['merge'] + inputs + [outputname])
+    result = runner.invoke(main_group, ["merge"] + inputs + [outputname])
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as out:
@@ -143,20 +139,22 @@ def test_merge_with_nodata(test_data_dir_1, runner):
 @pytest.mark.filterwarnings("ignore:Input file's nodata value")
 def test_merge_error(test_data_dir_1, runner):
     """A nodata value outside the valid range results in an error"""
-    outputname = str(test_data_dir_1.join('merged.tif'))
+    outputname = str(test_data_dir_1.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_1.listdir()]
     inputs.sort()
     result = runner.invoke(
-        main_group, ['merge'] + inputs + [outputname] + ['--nodata', '-1'])
+        main_group, ["merge"] + inputs + [outputname] + ["--nodata", "-1"]
+    )
     assert result.exit_code
 
 
 def test_merge_bidx(test_data_dir_3, runner):
-    outputname = str(test_data_dir_3.join('merged.tif'))
+    outputname = str(test_data_dir_3.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_3.listdir()]
     inputs.sort()
     result = runner.invoke(
-        main_group, ['merge'] + inputs + [outputname] + ['--bidx', '1'])
+        main_group, ["merge"] + inputs + [outputname] + ["--bidx", "1"]
+    )
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(inputs[0]) as src:
@@ -165,13 +163,12 @@ def test_merge_bidx(test_data_dir_3, runner):
         assert out.count == 1
 
 
-@requires_gdal22(
-    reason="This test is sensitive to pixel values and requires GDAL 2.2+")
+@requires_gdal22(reason="This test is sensitive to pixel values and requires GDAL 2.2+")
 def test_merge_without_nodata(test_data_dir_2, runner):
-    outputname = str(test_data_dir_2.join('merged.tif'))
+    outputname = str(test_data_dir_2.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_2.listdir()]
     inputs.sort()
-    result = runner.invoke(main_group, ['merge'] + inputs + [outputname])
+    result = runner.invoke(main_group, ["merge"] + inputs + [outputname])
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as out:
@@ -184,12 +181,10 @@ def test_merge_without_nodata(test_data_dir_2, runner):
 
 
 def test_merge_output_exists(tmpdir, runner):
-    outputname = str(tmpdir.join('merged.tif'))
-    result = runner.invoke(
-        main_group, ['merge', 'tests/data/RGB.byte.tif', outputname])
+    outputname = str(tmpdir.join("merged.tif"))
+    result = runner.invoke(main_group, ["merge", "tests/data/RGB.byte.tif", outputname])
     assert result.exit_code == 0
-    result = runner.invoke(
-        main_group, ['merge', 'tests/data/RGB.byte.tif', outputname])
+    result = runner.invoke(main_group, ["merge", "tests/data/RGB.byte.tif", outputname])
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as out:
         assert out.count == 3
@@ -198,60 +193,65 @@ def test_merge_output_exists(tmpdir, runner):
 def test_merge_output_exists_without_nodata_fails(test_data_dir_2, runner):
     """Fails without --overwrite"""
     result = runner.invoke(
-        main_group, [
-            'merge', str(test_data_dir_2.join('a.tif')),
-            str(test_data_dir_2.join('b.tif'))])
+        main_group,
+        [
+            "merge",
+            str(test_data_dir_2.join("a.tif")),
+            str(test_data_dir_2.join("b.tif")),
+        ],
+    )
     assert result.exit_code == 1
 
 
 def test_merge_output_exists_without_nodata(test_data_dir_2, runner):
     """Succeeds with --overwrite"""
     result = runner.invoke(
-        main_group, [
-            'merge', '--overwrite', str(test_data_dir_2.join('a.tif')),
-            str(test_data_dir_2.join('b.tif'))])
+        main_group,
+        [
+            "merge",
+            "--overwrite",
+            str(test_data_dir_2.join("a.tif")),
+            str(test_data_dir_2.join("b.tif")),
+        ],
+    )
     assert result.exit_code == 0
 
 
 def test_merge_err(runner):
-    result = runner.invoke(
-        main_group, ['merge', 'tests'])
+    result = runner.invoke(main_group, ["merge", "tests"])
     assert result.exit_code == 1
 
 
 def test_format_jpeg(tmpdir, runner):
-    outputname = str(tmpdir.join('stacked.jpg'))
+    outputname = str(tmpdir.join("stacked.jpg"))
     result = runner.invoke(
-        main_group, [
-            'merge', 'tests/data/RGB.byte.tif', outputname,
-            '--format', 'JPEG'])
+        main_group, ["merge", "tests/data/RGB.byte.tif", outputname, "--format", "JPEG"]
+    )
     assert result.exit_code == 0
     assert os.path.exists(outputname)
 
 
 # Non-coincident datasets test fixture.
 # Two overlapping GeoTIFFs, one to the NW and one to the SE.
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_overlapping(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, -114,
-                                   0, -0.2, 46),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, -114, 0, -0.2, 46),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": 10,
         "height": 10,
-        "nodata": 0
+        "nodata": 0,
     }
 
-    with rasterio.open(str(tmpdir.join('se.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("se.tif")), "w", **kwargs) as dst:
         data = np.ones((10, 10), dtype=rasterio.uint8)
         dst.write(data, indexes=1)
 
-    kwargs['transform'] = affine.Affine(0.2, 0, -113,
-                                        0, -0.2, 45)
-    with rasterio.open(str(tmpdir.join('nw.tif')), 'w', **kwargs) as dst:
+    kwargs["transform"] = affine.Affine(0.2, 0, -113, 0, -0.2, 45)
+    with rasterio.open(str(tmpdir.join("nw.tif")), "w", **kwargs) as dst:
         data = np.ones((10, 10), dtype=rasterio.uint8) * 2
         dst.write(data, indexes=1)
 
@@ -259,10 +259,10 @@ def test_data_dir_overlapping(tmpdir):
 
 
 def test_merge_overlapping(test_data_dir_overlapping, runner):
-    outputname = str(test_data_dir_overlapping.join('merged.tif'))
+    outputname = str(test_data_dir_overlapping.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_overlapping.listdir()]
     inputs.sort()
-    result = runner.invoke(main_group, ['merge'] + inputs + [outputname])
+    result = runner.invoke(main_group, ["merge"] + inputs + [outputname])
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as out:
@@ -281,8 +281,9 @@ def test_merge_overlapping_callable_long(test_data_dir_overlapping, runner):
     datasets = [rasterio.open(x) for x in inputs]
     test_merge_overlapping_callable_long.index = 0
 
-    def mycallable(old_data, new_data, old_nodata, new_nodata,
-                   index=None, roff=None, coff=None):
+    def mycallable(
+        old_data, new_data, old_nodata, new_nodata, index=None, roff=None, coff=None
+    ):
         assert old_data.shape[0] == 5
         assert new_data.shape[0] == 1
         assert test_merge_overlapping_callable_long.index == index
@@ -292,12 +293,13 @@ def test_merge_overlapping_callable_long(test_data_dir_overlapping, runner):
 
 
 def test_custom_callable_merge(test_data_dir_overlapping, runner):
-    inputs = ['tests/data/world.byte.tif'] * 3
+    inputs = ["tests/data/world.byte.tif"] * 3
     datasets = [rasterio.open(x) for x in inputs]
     output_count = 4
 
-    def mycallable(old_data, new_data, old_nodata, new_nodata,
-                   index=None, roff=None, coff=None):
+    def mycallable(
+        old_data, new_data, old_nodata, new_nodata, index=None, roff=None, coff=None
+    ):
         # input data are bytes, test output doesn't overflow
         old_data[index] = (
             index + 1
@@ -305,47 +307,48 @@ def test_custom_callable_merge(test_data_dir_overlapping, runner):
         # update additional band that we specified in output_count
         old_data[3, :, :] += index
 
-    arr, _ = merge(datasets, output_count=output_count, method=mycallable, dtype=np.uint64)
+    arr, _ = merge(
+        datasets, output_count=output_count, method=mycallable, dtype=np.uint64
+    )
 
     np.testing.assert_array_equal(np.mean(arr[:3], axis=0), 518)
     np.testing.assert_array_equal(arr[3, :, :], 3)
 
 
 # Fixture to create test datasets within temporary directory
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_float(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, -114,
-                                   0, -0.2, 46),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, -114, 0, -0.2, 46),
         "count": 1,
         "dtype": rasterio.float64,
         "driver": "GTiff",
         "width": 10,
         "height": 10,
-        "nodata": 0
+        "nodata": 0,
     }
 
-    with rasterio.open(str(tmpdir.join('two.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("two.tif")), "w", **kwargs) as dst:
         data = np.zeros((10, 10), dtype=rasterio.float64)
         data[0:6, 0:6] = 255
         dst.write(data, indexes=1)
 
-    with rasterio.open(str(tmpdir.join('one.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("one.tif")), "w", **kwargs) as dst:
         data = np.zeros((10, 10), dtype=rasterio.float64)
         data[4:8, 4:8] = 254
         dst.write(data, indexes=1)
     return tmpdir
 
 
-@requires_gdal22(
-    reason="This test is sensitive to pixel values and requires GDAL 2.2+")
+@requires_gdal22(reason="This test is sensitive to pixel values and requires GDAL 2.2+")
 def test_merge_float(test_data_dir_float, runner):
-    outputname = str(test_data_dir_float.join('merged.tif'))
+    outputname = str(test_data_dir_float.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_float.listdir()]
     inputs.sort()
     result = runner.invoke(
-        main_group, ['merge'] + inputs + [outputname] + ['--nodata', '-1.5'])
+        main_group, ["merge"] + inputs + [outputname] + ["--nodata", "-1.5"]
+    )
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as out:
@@ -360,46 +363,44 @@ def test_merge_float(test_data_dir_float, runner):
 # Test below comes from issue #288. There was an off-by-one error in
 # pasting image data into the canvas array.
 
-@fixture(scope='function')
+
+@fixture(scope="function")
 def tiffs(tmpdir):
 
-    data = np.ones((1, 1, 1), 'uint8')
+    data = np.ones((1, 1, 1), "uint8")
 
     kwargs = {
-        'count': '1',
-        'driver': 'GTiff',
-        'dtype': 'uint8',
-        'height': 1,
-        'width': 1}
+        "count": "1",
+        "driver": "GTiff",
+        "dtype": "uint8",
+        "height": 1,
+        "width": 1,
+    }
 
-    kwargs['transform'] = Affine(1, 0, 1,
-                                 0, -1, 1)
-    with rasterio.open(str(tmpdir.join('a-sw.tif')), 'w', **kwargs) as r:
+    kwargs["transform"] = Affine(1, 0, 1, 0, -1, 1)
+    with rasterio.open(str(tmpdir.join("a-sw.tif")), "w", **kwargs) as r:
         r.write(data * 40)
 
-    kwargs['transform'] = Affine(1, 0, 2,
-                                 0, -1, 2)
-    with rasterio.open(str(tmpdir.join('b-ct.tif')), 'w', **kwargs) as r:
+    kwargs["transform"] = Affine(1, 0, 2, 0, -1, 2)
+    with rasterio.open(str(tmpdir.join("b-ct.tif")), "w", **kwargs) as r:
         r.write(data * 60)
 
-    kwargs['transform'] = Affine(2, 0, 3,
-                                 0, -2, 4)
-    with rasterio.open(str(tmpdir.join('c-ne.tif')), 'w', **kwargs) as r:
+    kwargs["transform"] = Affine(2, 0, 3, 0, -2, 4)
+    with rasterio.open(str(tmpdir.join("c-ne.tif")), "w", **kwargs) as r:
         r.write(data * 90)
 
-    kwargs['transform'] = Affine(2, 0, 2,
-                                 0, -2, 4)
-    with rasterio.open(str(tmpdir.join('d-ne.tif')), 'w', **kwargs) as r:
+    kwargs["transform"] = Affine(2, 0, 2, 0, -2, 4)
+    with rasterio.open(str(tmpdir.join("d-ne.tif")), "w", **kwargs) as r:
         r.write(data * 120)
 
     return tmpdir
 
 
 def test_merge_tiny_base(tiffs, runner):
-    outputname = str(tiffs.join('merged.tif'))
+    outputname = str(tiffs.join("merged.tif"))
     inputs = [str(x) for x in tiffs.listdir()]
     inputs.sort()
-    result = runner.invoke(main_group, ['merge'] + inputs + [outputname])
+    result = runner.invoke(main_group, ["merge"] + inputs + [outputname])
     assert result.exit_code == 0
 
     # Output should be
@@ -419,10 +420,10 @@ def test_merge_tiny_base(tiffs, runner):
 
 
 def test_merge_tiny_output_opt(tiffs, runner):
-    outputname = str(tiffs.join('merged.tif'))
+    outputname = str(tiffs.join("merged.tif"))
     inputs = [str(x) for x in tiffs.listdir()]
     inputs.sort()
-    result = runner.invoke(main_group, ['merge'] + inputs + ['-o', outputname])
+    result = runner.invoke(main_group, ["merge"] + inputs + ["-o", outputname])
     assert result.exit_code == 0
 
     # Output should be
@@ -440,16 +441,18 @@ def test_merge_tiny_output_opt(tiffs, runner):
         assert data[0][3][0] == 40
 
 
-@requires_gdal22(
-    reason="This test is sensitive to pixel values and requires GDAL 2.2+")
-@pytest.mark.xfail(sys.version_info < (3,),
-                   reason="Test is sensitive to rounding behavior")
+@requires_gdal22(reason="This test is sensitive to pixel values and requires GDAL 2.2+")
+@pytest.mark.xfail(
+    sys.version_info < (3,), reason="Test is sensitive to rounding behavior"
+)
 def test_merge_tiny_res_bounds(tiffs, runner):
-    outputname = str(tiffs.join('merged.tif'))
+    outputname = str(tiffs.join("merged.tif"))
     inputs = [str(x) for x in tiffs.listdir()]
     inputs.sort()
     result = runner.invoke(
-        main_group, ['merge'] + inputs + [outputname, '--res', 2, '--bounds', '1, 0, 5, 4'])
+        main_group,
+        ["merge"] + inputs + [outputname, "--res", 2, "--bounds", "1, 0, 5, 4"],
+    )
     assert result.exit_code == 0
 
     # Output should be
@@ -467,16 +470,18 @@ def test_merge_tiny_res_bounds(tiffs, runner):
 
 def test_merge_out_of_range_nodata(tiffs):
     inputs = [
-        'tests/data/rgb1.tif',
-        'tests/data/rgb2.tif',
-        'tests/data/rgb3.tif',
-        'tests/data/rgb4.tif']
+        "tests/data/rgb1.tif",
+        "tests/data/rgb2.tif",
+        "tests/data/rgb3.tif",
+        "tests/data/rgb4.tif",
+    ]
     datasets = [rasterio.open(x) for x in inputs]
-    assert datasets[1].dtypes[0] == 'uint8'
+    assert datasets[1].dtypes[0] == "uint8"
 
     with pytest.warns(UserWarning):
         rv, transform = merge(datasets, nodata=9999)
     assert not (rv == np.uint8(9999)).any()
+
 
 @pytest.mark.xfail(
     gdal_version.major == 1,
@@ -484,13 +489,14 @@ def test_merge_out_of_range_nodata(tiffs):
 )
 def test_merge_rgb(tmpdir, runner):
     """Get back original image"""
-    outputname = str(tmpdir.join('merged.tif'))
+    outputname = str(tmpdir.join("merged.tif"))
     inputs = [
-        'tests/data/rgb1.tif',
-        'tests/data/rgb2.tif',
-        'tests/data/rgb3.tif',
-        'tests/data/rgb4.tif']
-    result = runner.invoke(main_group, ['merge'] + inputs + [outputname])
+        "tests/data/rgb1.tif",
+        "tests/data/rgb2.tif",
+        "tests/data/rgb3.tif",
+        "tests/data/rgb4.tif",
+    ]
+    result = runner.invoke(main_group, ["merge"] + inputs + [outputname])
     assert result.exit_code == 0
 
     with rasterio.open(outputname) as src:
@@ -552,26 +558,27 @@ def test_merge_precision(tmpdir, precision):
     outputname = str(tmpdir.join("merged.asc"))
 
     runner = CliRunner()
-    result = runner.invoke(main_group, ["merge", "-f", "AAIGrid"] + precision + inputs + [outputname])
+    result = runner.invoke(
+        main_group, ["merge", "-f", "AAIGrid"] + precision + inputs + [outputname]
+    )
     assert result.exit_code == 0
     assert open(outputname).read() == textwrap.dedent(expected)
 
 
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_resampling(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, 0,
-                                   0, -0.2, 0),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, 0, 0, -0.2, 0),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": 9,
         "height": 1,
-        "nodata": 1
+        "nodata": 1,
     }
 
-    with rasterio.open(str(tmpdir.join('a.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("a.tif")), "w", **kwargs) as dst:
         data = np.ones((1, 9), dtype=rasterio.uint8)
         data[:, :3] = 100
         data[:, 3:6] = 255
@@ -582,23 +589,26 @@ def test_data_dir_resampling(tmpdir):
 
 @pytest.mark.parametrize(
     "resampling",
-    [resamp for resamp in Resampling if resamp < 7] +
-    [pytest.param(Resampling.gauss, marks=pytest.mark.xfail)]
+    [resamp for resamp in Resampling if resamp < 7]
+    + [pytest.param(Resampling.gauss, marks=pytest.mark.xfail)],
 )
 def test_merge_resampling(test_data_dir_resampling, resampling, runner):
-    outputname = str(test_data_dir_resampling.join('merged.tif'))
+    outputname = str(test_data_dir_resampling.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_resampling.listdir()]
     with rasterio.open(inputs[0]) as src:
         bounds = src.bounds
         res = src.res[0]
         expected_raster = src.read(
-            out_shape=tuple(dim * 2 for dim in src.shape),
-            resampling=resampling
+            out_shape=tuple(dim * 2 for dim in src.shape), resampling=resampling
         )
     result = runner.invoke(
-        main_group, ['merge'] + inputs + [outputname] +
-        ['--res', res / 2, '--resampling', resampling.name] +
-        ['--bounds', ' '.join(map(str, bounds))])
+        main_group,
+        ["merge"]
+        + inputs
+        + [outputname]
+        + ["--res", res / 2, "--resampling", resampling.name]
+        + ["--bounds", " ".join(map(str, bounds))],
+    )
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as dst:
@@ -632,21 +642,20 @@ def test_merge_output_dataset(tiffs, tmpdir):
         assert result.height == result.width == 2
 
 
-@fixture(scope='function')
+@fixture(scope="function")
 def test_data_dir_resampling(tmpdir):
     kwargs = {
-        "crs": {'init': 'epsg:4326'},
-        "transform": affine.Affine(0.2, 0, 0,
-                                   0, -0.2, 0),
+        "crs": {"init": "epsg:4326"},
+        "transform": affine.Affine(0.2, 0, 0, 0, -0.2, 0),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": 9,
         "height": 1,
-        "nodata": 1
+        "nodata": 1,
     }
 
-    with rasterio.open(str(tmpdir.join('a.tif')), 'w', **kwargs) as dst:
+    with rasterio.open(str(tmpdir.join("a.tif")), "w", **kwargs) as dst:
         data = np.ones((1, 9), dtype=rasterio.uint8)
         data[:, :3] = 100
         data[:, 3:6] = 255
@@ -664,19 +673,22 @@ def test_data_dir_resampling(tmpdir):
     + [pytest.param(Resampling.gauss, marks=pytest.mark.xfail)],
 )
 def test_merge_resampling(test_data_dir_resampling, resampling, runner):
-    outputname = str(test_data_dir_resampling.join('merged.tif'))
+    outputname = str(test_data_dir_resampling.join("merged.tif"))
     inputs = [str(x) for x in test_data_dir_resampling.listdir()]
     with rasterio.open(inputs[0]) as src:
         bounds = src.bounds
         res = src.res[0]
         expected_raster = src.read(
-            out_shape=tuple(dim * 2 for dim in src.shape),
-            resampling=resampling
+            out_shape=tuple(dim * 2 for dim in src.shape), resampling=resampling
         )
     result = runner.invoke(
-        main_group, ['merge'] + inputs + [outputname] +
-        ['--res', res / 2, '--resampling', resampling.name] +
-        ['--bounds', ' '.join(map(str, bounds))])
+        main_group,
+        ["merge"]
+        + inputs
+        + [outputname]
+        + ["--res", res / 2, "--resampling", resampling.name]
+        + ["--bounds", " ".join(map(str, bounds))],
+    )
     assert result.exit_code == 0
     assert os.path.exists(outputname)
     with rasterio.open(outputname) as dst:

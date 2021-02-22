@@ -1,0 +1,14 @@
+[flake8]
+max-line-length = 120
+ignore = F401,E203,E501,W503,F841,E226,E265
+# unused imports
+# `black` creates these ones
+# line too long
+# local variable assigned, not used
+# missing whitespace
+# block comment should start with #
+filename = *.py, *.pyx
+# exclude = .git,__pycache__,docs/source/conf.py,old,build,dist
+# max-complexity = 10
+# per-file-ignores =
+#    streaming_form_data/_parser.pyx: E225, E226

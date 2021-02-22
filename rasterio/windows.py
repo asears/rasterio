@@ -70,8 +70,15 @@ class WindowMethodsMixin(object):
         transform = guard_transform(self.transform)
 
         return from_bounds(
-            left, bottom, right, top, transform=transform,
-            height=self.height, width=self.width, precision=precision)
+            left,
+            bottom,
+            right,
+            top,
+            transform=transform,
+            height=self.height,
+            width=self.width,
+            precision=precision,
+        )
 
     def window_transform(self, window):
         """Get the affine transform for a dataset window.
@@ -112,12 +119,14 @@ def iter_args(function):
     """Decorator to allow function to take either *args or
     a single iterable which gets expanded to *args.
     """
+
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
         if len(args) == 1 and isinstance(args[0], Iterable):
             return function(*args[0])
         else:
             return function(*args)
+
     return wrapper
 
 
@@ -149,11 +158,11 @@ def get_data_window(arr, nodata=None):
     num_dims = len(arr.shape)
     if num_dims > 3:
         raise WindowError(
-            "get_data_window input array must have no more than "
-            "3 dimensions")
+            "get_data_window input array must have no more than " "3 dimensions"
+        )
 
     if nodata is None:
-        if not hasattr(arr, 'mask'):
+        if not hasattr(arr, "mask"):
             return Window.from_slices((0, arr.shape[-2]), (0, arr.shape[-1]))
     else:
         arr = np.ma.masked_array(arr, arr == nodata)
@@ -162,7 +171,8 @@ def get_data_window(arr, nodata=None):
         data_rows, data_cols = np.where(np.equal(arr.mask, False))
     else:
         data_rows, data_cols = np.where(
-            np.any(np.equal(np.rollaxis(arr.mask, 0, 3), False), axis=2))
+            np.any(np.equal(np.rollaxis(arr.mask, 0, 3), False), axis=2)
+        )
 
     if data_rows.size:
         row_range = (data_rows.min(), data_rows.max() + 1)
@@ -194,7 +204,8 @@ def union(*windows):
     stacked = np.dstack([toranges(w) for w in windows])
     return Window.from_slices(
         (stacked[0, 0].min(), stacked[0, 1].max()),
-        (stacked[1, 0].min(), stacked[1, 1]. max()))
+        (stacked[1, 0].min(), stacked[1, 1].max()),
+    )
 
 
 @iter_args
@@ -218,7 +229,8 @@ def intersection(*windows):
     stacked = np.dstack([toranges(w) for w in windows])
     return Window.from_slices(
         (stacked[0, 0].max(), stacked[0, 1].min()),
-        (stacked[1, 0].max(), stacked[1, 1]. min()))
+        (stacked[1, 0].max(), stacked[1, 1].min()),
+    )
 
 
 @iter_args
@@ -238,8 +250,7 @@ def intersect(*windows):
     from itertools import combinations
 
     def intersects(range1, range2):
-        return not (
-            range1[0] >= range2[1] or range1[1] <= range2[0])
+        return not (range1[0] >= range2[1] or range1[1] <= range2[0])
 
     windows = np.array([toranges(w) for w in windows])
 
@@ -251,8 +262,9 @@ def intersect(*windows):
     return True
 
 
-def from_bounds(left, bottom, right, top, transform=None,
-                height=None, width=None, precision=None):
+def from_bounds(
+    left, bottom, right, top, transform=None, height=None, width=None, precision=None
+):
     """Get the window corresponding to the bounding coordinates.
 
     Parameters
@@ -289,15 +301,17 @@ def from_bounds(left, bottom, right, top, transform=None,
     if not isinstance(transform, Affine):  # TODO: RPCs?
         raise WindowError("A transform object is required to calculate the window")
 
-    row_start, col_start = rowcol(
-        transform, left, top, op=float, precision=precision)
+    row_start, col_start = rowcol(transform, left, top, op=float, precision=precision)
 
-    row_stop, col_stop = rowcol(
-        transform, right, bottom, op=float, precision=precision)
+    row_stop, col_stop = rowcol(transform, right, bottom, op=float, precision=precision)
 
     return Window.from_slices(
-        (row_start, row_stop), (col_start, col_stop), height=height,
-        width=width, boundless=True)
+        (row_start, row_stop),
+        (col_start, col_stop),
+        height=height,
+        width=width,
+        boundless=True,
+    )
 
 
 def transform(window, transform):
@@ -318,8 +332,7 @@ def transform(window, transform):
     window = evaluate(window, height=0, width=0)
 
     x, y = transform * (window.col_off or 0.0, window.row_off or 0.0)
-    return Affine.translation(
-        x - transform.c, y - transform.f) * transform
+    return Affine.translation(x - transform.c, y - transform.f) * transform
 
 
 def bounds(window, transform, height=0, width=0):
@@ -371,8 +384,7 @@ def crop(window, height, width):
     row_stop = max(0, min(window.row_off + window.height, height))
     col_stop = max(0, min(window.col_off + window.width, width))
 
-    return Window(col_start, row_start, col_stop - col_start,
-                  row_stop - row_start)
+    return Window(col_start, row_start, col_stop - col_start, row_stop - row_start)
 
 
 def evaluate(window, height, width, boundless=False):
@@ -398,8 +410,9 @@ def evaluate(window, height, width, boundless=False):
         return window
     else:
         rows, cols = window
-        return Window.from_slices(rows=rows, cols=cols, height=height,
-                                  width=width, boundless=boundless)
+        return Window.from_slices(
+            rows=rows, cols=cols, height=height, width=width, boundless=boundless
+        )
 
 
 def shape(window, height=-1, width=-1):
@@ -445,7 +458,8 @@ def window_index(window, height=0, width=0):
     (row_start, row_stop), (col_start, col_stop) = window.toranges()
     return (
         slice(int(math.floor(row_start)), int(math.ceil(row_stop))),
-        slice(int(math.floor(col_start)), int(math.ceil(col_stop))))
+        slice(int(math.floor(col_start)), int(math.ceil(col_stop))),
+    )
 
 
 def round_window_to_full_blocks(window, block_shapes, height=0, width=0):
@@ -465,8 +479,7 @@ def round_window_to_full_blocks(window, block_shapes, height=0, width=0):
     Window
     """
     if len(set(block_shapes)) != 1:  # pragma: no cover
-        raise WindowError(
-            "All bands must have the same block/stripe structure")
+        raise WindowError("All bands must have the same block/stripe structure")
 
     window = evaluate(window, height=height, width=width)
 
@@ -476,12 +489,14 @@ def round_window_to_full_blocks(window, block_shapes, height=0, width=0):
     (row_start, row_stop), (col_start, col_stop) = window.toranges()
 
     row_min = int(row_start // height_shape) * height_shape
-    row_max = int(row_stop // height_shape) * height_shape + \
-        (height_shape if row_stop % height_shape != 0 else 0)
+    row_max = int(row_stop // height_shape) * height_shape + (
+        height_shape if row_stop % height_shape != 0 else 0
+    )
 
     col_min = int(col_start // width_shape) * width_shape
-    col_max = int(col_stop // width_shape) * width_shape + \
-        (width_shape if col_stop % width_shape != 0 else 0)
+    col_max = int(col_stop // width_shape) * width_shape + (
+        width_shape if col_stop % width_shape != 0 else 0
+    )
 
     return Window(col_min, row_min, col_max - col_min, row_max - row_min)
 
@@ -491,8 +506,7 @@ def validate_length_value(instance, attribute, value):
         raise ValueError("Number of columns or rows must be non-negative")
 
 
-@attr.s(slots=True,
-        frozen=True)
+@attr.s(slots=True, frozen=True)
 class Window(object):
     """Windows are rectangular subsets of rasters.
 
@@ -510,6 +524,7 @@ class Window(object):
     this is a bit confusing in the new float precision world and the
     attributes have been changed. The originals are deprecated.
     """
+
     col_off = attr.ib()
     row_off = attr.ib()
     width = attr.ib(validator=validate_length_value)
@@ -519,8 +534,8 @@ class Window(object):
         """Return a nicely formatted representation string"""
         return (
             "Window(col_off={self.col_off}, row_off={self.row_off}, "
-            "width={self.width}, height={self.height})").format(
-                self=self)
+            "width={self.width}, height={self.height})"
+        ).format(self=self)
 
     def flatten(self):
         """A flattened form of the window.
@@ -540,14 +555,18 @@ class Window(object):
         dict
         """
         return collections.OrderedDict(
-            col_off=self.col_off, row_off=self.row_off, width=self.width,
-            height=self.height)
+            col_off=self.col_off,
+            row_off=self.row_off,
+            width=self.width,
+            height=self.height,
+        )
 
     def toranges(self):
         """Makes an equivalent pair of range tuples"""
         return (
             (self.row_off, self.row_off + self.height),
-            (self.col_off, self.col_off + self.width))
+            (self.col_off, self.col_off + self.width),
+        )
 
     def toslices(self):
         """Slice objects for use as an ndarray indexer.
@@ -624,10 +643,11 @@ class Window(object):
         col_stop = width if cols.stop is None else cols.stop
 
         if not boundless:
-            if (row_off < 0 or row_stop < 0):
+            if row_off < 0 or row_stop < 0:
                 if height < 0:
-                    raise WindowError("height is required when providing "
-                                      "negative indexes")
+                    raise WindowError(
+                        "height is required when providing " "negative indexes"
+                    )
 
                 if row_off < 0:
                     row_off += height
@@ -635,10 +655,11 @@ class Window(object):
                 if row_stop < 0:
                     row_stop += height
 
-            if (col_off < 0 or col_stop < 0):
+            if col_off < 0 or col_stop < 0:
                 if width < 0:
-                    raise WindowError("width is required when providing "
-                                      "negative indexes")
+                    raise WindowError(
+                        "width is required when providing " "negative indexes"
+                    )
 
                 if col_off < 0:
                     col_off += width
@@ -649,10 +670,9 @@ class Window(object):
         num_cols = max(col_stop - col_off, 0.0)
         num_rows = max(row_stop - row_off, 0.0)
 
-        return cls(col_off=col_off, row_off=row_off, width=num_cols,
-                   height=num_rows)
+        return cls(col_off=col_off, row_off=row_off, width=num_cols, height=num_rows)
 
-    def round_lengths(self, op='floor', pixel_precision=None):
+    def round_lengths(self, op="floor", pixel_precision=None):
         """Return a copy with width and height rounded.
 
         Lengths are rounded to the preceding (floor) or succeeding (ceil)
@@ -669,22 +689,26 @@ class Window(object):
         -------
         Window
         """
-        if op not in {'ceil', 'floor'}:
+        if op not in {"ceil", "floor"}:
             raise WindowError("operator must be 'ceil' or 'floor', got '{}'".format(op))
 
         operator = getattr(math, op)
         if pixel_precision is None:
-            return Window(self.col_off, self.row_off,
-                          operator(self.width), operator(self.height))
+            return Window(
+                self.col_off, self.row_off, operator(self.width), operator(self.height)
+            )
         else:
-            return Window(self.col_off, self.row_off,
-                          operator(round(self.width, pixel_precision)),
-                          operator(round(self.height, pixel_precision)))
+            return Window(
+                self.col_off,
+                self.row_off,
+                operator(round(self.width, pixel_precision)),
+                operator(round(self.height, pixel_precision)),
+            )
 
     # TODO: deprecate round_shape at 1.3.0, with a warning.
     round_shape = round_lengths
 
-    def round_offsets(self, op='floor', pixel_precision=None):
+    def round_offsets(self, op="floor", pixel_precision=None):
         """Return a copy with column and row offsets rounded.
 
         Offsets are rounded to the preceding (floor) or succeeding (ceil)
@@ -701,17 +725,21 @@ class Window(object):
         -------
         Window
         """
-        if op not in {'ceil', 'floor'}:
+        if op not in {"ceil", "floor"}:
             raise WindowError("operator must be 'ceil' or 'floor', got '{}'".format(op))
 
         operator = getattr(math, op)
         if pixel_precision is None:
-            return Window(operator(self.col_off), operator(self.row_off),
-                          self.width, self.height)
+            return Window(
+                operator(self.col_off), operator(self.row_off), self.width, self.height
+            )
         else:
-            return Window(operator(round(self.col_off, pixel_precision)),
-                          operator(round(self.row_off, pixel_precision)),
-                          self.width, self.height)
+            return Window(
+                operator(round(self.col_off, pixel_precision)),
+                operator(round(self.row_off, pixel_precision)),
+                self.width,
+                self.height,
+            )
 
     def crop(self, height, width):
         """Return a copy cropped to height and width"""

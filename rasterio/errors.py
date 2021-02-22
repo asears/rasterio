@@ -38,7 +38,7 @@ class FileOverwriteError(FileError):
 
     def __init__(self, message):
         """Raise FileOverwriteError with message as hint."""
-        super(FileOverwriteError, self).__init__('', hint=message)
+        super(FileOverwriteError, self).__init__("", hint=message)
 
 
 class RasterioIOError(IOError):
@@ -50,9 +50,11 @@ class NodataShadowWarning(UserWarning):
     """Warn that a dataset's nodata attribute is shadowing its alpha band."""
 
     def __str__(self):
-        return ("The dataset's nodata attribute is shadowing "
-                "the alpha band. All masks will be determined "
-                "by the nodata attribute")
+        return (
+            "The dataset's nodata attribute is shadowing "
+            "the alpha band. All masks will be determined "
+            "by the nodata attribute"
+        )
 
 
 class NotGeoreferencedWarning(UserWarning):
@@ -86,6 +88,7 @@ class GDALOptionNotImplementedError(RasterioError):
     a user passes arguments to open_dataset() that can't be evaluated
     by GDAL 1.x.
     """
+
 
 class GDALVersionError(RasterioError):
     """Raised if the runtime version of GDAL does not meet the required

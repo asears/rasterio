@@ -14,7 +14,9 @@ from rasterio.rio.main import main_group
 @pytest.mark.wheel
 def test_gdal_data():
     """Get GDAL data path from a wheel"""
-    assert GDALDataFinder().search() == os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
+    assert GDALDataFinder().search() == os.path.join(
+        os.path.dirname(rasterio.__file__), "gdal_data"
+    )
 
 
 def test_gdal_data_find_file():
@@ -26,7 +28,9 @@ def test_gdal_data_find_file():
 @pytest.mark.wheel
 def test_proj_data():
     """Get GDAL data path from a wheel"""
-    assert PROJDataFinder().search() == os.path.join(os.path.dirname(rasterio.__file__), 'proj_data')
+    assert PROJDataFinder().search() == os.path.join(
+        os.path.dirname(rasterio.__file__), "proj_data"
+    )
 
 
 def test_proj_data_has_data():
@@ -37,14 +41,18 @@ def test_proj_data_has_data():
 @requires_gdal_lt_3
 @pytest.mark.wheel
 def test_env_gdal_data(runner):
-    result = runner.invoke(main_group, ['env', '--gdal-data'])
+    result = runner.invoke(main_group, ["env", "--gdal-data"])
     assert result.exit_code == 0
-    assert result.output.strip() == os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
+    assert result.output.strip() == os.path.join(
+        os.path.dirname(rasterio.__file__), "gdal_data"
+    )
 
 
 @requires_gdal_lt_3
 @pytest.mark.wheel
 def test_env_proj_data(runner):
-    result = runner.invoke(main_group, ['env', '--proj-data'])
+    result = runner.invoke(main_group, ["env", "--proj-data"])
     assert result.exit_code == 0
-    assert result.output.strip() == os.path.join(os.path.dirname(rasterio.__file__), 'proj_data')
+    assert result.output.strip() == os.path.join(
+        os.path.dirname(rasterio.__file__), "proj_data"
+    )

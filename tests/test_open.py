@@ -27,6 +27,6 @@ def test_open_pathlib_path():
         from pathlib import Path
     except ImportError:
         return
-    tif = Path.cwd() / 'tests' / 'data' / 'RGB.byte.tif'
+    tif = Path.cwd() / "tests" / "data" / "RGB.byte.tif"
     with rasterio.open(tif) as src:
         assert src.count == 3

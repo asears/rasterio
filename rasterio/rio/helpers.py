@@ -15,10 +15,10 @@ def coords(obj):
     From python-geojson package."""
     if isinstance(obj, (tuple, list)):
         coordinates = obj
-    elif 'geometry' in obj:
-        coordinates = obj['geometry']['coordinates']
+    elif "geometry" in obj:
+        coordinates = obj["geometry"]["coordinates"]
     else:
-        coordinates = obj.get('coordinates', obj)
+        coordinates = obj.get("coordinates", obj)
     for e in coordinates:
         if isinstance(e, (float, int)):
             yield tuple(coordinates)
@@ -29,8 +29,8 @@ def coords(obj):
 
 
 def write_features(
-        fobj, collection, sequence=False, geojson_type='feature', use_rs=False,
-        **dump_kwds):
+    fobj, collection, sequence=False, geojson_type="feature", use_rs=False, **dump_kwds
+):
     """Read an iterator of (feat, bbox) pairs and write to file using
     the selected modes."""
     # Sequence of features expressed as bbox, feature, or collection.
@@ -39,26 +39,31 @@ def write_features(
             xs, ys = zip(*coords(feat))
             bbox = (min(xs), min(ys), max(xs), max(ys))
             if use_rs:
-                fobj.write(u'\u001e')
-            if geojson_type == 'bbox':
+                fobj.write(u"\u001e")
+            if geojson_type == "bbox":
                 fobj.write(json.dumps(bbox, **dump_kwds))
             else:
                 fobj.write(json.dumps(feat, **dump_kwds))
-            fobj.write('\n')
+            fobj.write("\n")
 
     # Aggregate all features into a single object expressed as
     # bbox or collection.
     else:
         features = list(collection())
-        if geojson_type == 'bbox':
+        if geojson_type == "bbox":
             fobj.write(json.dumps(collection.bbox, **dump_kwds))
         else:
-            fobj.write(json.dumps({
-                'bbox': collection.bbox,
-                'type': 'FeatureCollection',
-                'features': features},
-                **dump_kwds))
-        fobj.write('\n')
+            fobj.write(
+                json.dumps(
+                    {
+                        "bbox": collection.bbox,
+                        "type": "FeatureCollection",
+                        "features": features,
+                    },
+                    **dump_kwds
+                )
+            )
+        fobj.write("\n")
 
 
 def resolve_inout(
@@ -103,8 +108,12 @@ def resolve_inout(
         )
 
     resolved_inputs = (
-        [input] if input else [] +
-        list(files[:-1 if not output else None]) if files else [])
+        [input]
+        if input
+        else [] + list(files[: -1 if not output else None])
+        if files
+        else []
+    )
 
     if num_inputs is not None:
         if len(resolved_inputs) < num_inputs:

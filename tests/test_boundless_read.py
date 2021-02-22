@@ -12,12 +12,15 @@ from .conftest import requires_gdal21, gdal_version
 
 
 @requires_gdal21(reason="Pixel equality tests require float windows and GDAL 2.1")
-@given(col_start=st.integers(min_value=-700, max_value=0),
-       row_start=st.integers(min_value=-700, max_value=0),
-       col_stop=st.integers(min_value=0, max_value=700),
-       row_stop=st.integers(min_value=0, max_value=700))
+@given(
+    col_start=st.integers(min_value=-700, max_value=0),
+    row_start=st.integers(min_value=-700, max_value=0),
+    col_stop=st.integers(min_value=0, max_value=700),
+    row_stop=st.integers(min_value=0, max_value=700),
+)
 def test_outer_boundless_pixel_fidelity(
-        path_rgb_byte_tif, col_start, row_start, col_stop, row_stop):
+    path_rgb_byte_tif, col_start, row_start, col_stop, row_stop
+):
     """An outer boundless read doesn't change pixels"""
     with rasterio.open(path_rgb_byte_tif) as dataset:
         width = dataset.width + col_stop - col_start
@@ -27,15 +30,21 @@ def test_outer_boundless_pixel_fidelity(
         assert rgb_padded.shape == (dataset.count, height, width)
         rgb = dataset.read()
         assert numpy.all(
-            rgb == rgb_padded[:, -row_start:height - row_stop,
-                              -col_start:width - col_stop])
+            rgb
+            == rgb_padded[
+                :, -row_start : height - row_stop, -col_start : width - col_stop
+            ]
+        )
 
 
 def test_image(red_green):
     """Read a red image with black background"""
     with rasterio.Env():
         with rasterio.open(str(red_green.join("red.tif"))) as src:
-            data = src.read(boundless=True, window=Window(-src.width, -src.height, src.width * 3, src.height * 3))
+            data = src.read(
+                boundless=True,
+                window=Window(-src.width, -src.height, src.width * 3, src.height * 3),
+            )
             image = numpy.moveaxis(data, 0, -1)
             assert image[63, 63, 0] == 0
             assert image[64, 64, 0] == 204
@@ -76,7 +85,9 @@ def test_boundless_mask_not_all_valid():
 def test_boundless_fill_value():
     """Confirm resolution of issue #1471"""
     with rasterio.open("tests/data/red.tif") as src:
-        filled = src.read(1, boundless=True, fill_value=5, window=Window(-1, -1, 66, 66))
+        filled = src.read(
+            1, boundless=True, fill_value=5, window=Window(-1, -1, 66, 66)
+        )
     assert (filled[:, 0] == 5).all()
     assert (filled[:, -1] == 5).all()
     assert (filled[0, :] == 5).all()
@@ -107,7 +118,13 @@ def test_boundless_mask_special():
 def test_boundless_fill_value_overview_masks():
     """Confirm a more general resolution to issue #1471"""
     with rasterio.open("tests/data/cogeo.tif") as src:
-        data = src.read(1, boundless=True, window=Window(-300, -335, 1000, 1000), fill_value=5, out_shape=(512, 512))
+        data = src.read(
+            1,
+            boundless=True,
+            window=Window(-300, -335, 1000, 1000),
+            fill_value=5,
+            out_shape=(512, 512),
+        )
     assert (data[:, 0] == 5).all()
 
 
@@ -115,7 +132,14 @@ def test_boundless_fill_value_overview_masks():
 def test_boundless_masked_fill_value_overview_masks():
     """Confirm a more general resolution to issue #1471"""
     with rasterio.open("tests/data/cogeo.tif") as src:
-        data = src.read(1, masked=True, boundless=True, window=Window(-300, -335, 1000, 1000), fill_value=5, out_shape=(512, 512))
+        data = src.read(
+            1,
+            masked=True,
+            boundless=True,
+            window=Window(-300, -335, 1000, 1000),
+            fill_value=5,
+            out_shape=(512, 512),
+        )
     assert data.fill_value == 5
     assert data.mask[:, 0].all()
 

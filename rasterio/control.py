@@ -6,8 +6,7 @@ import uuid
 class GroundControlPoint(object):
     """A mapping of row, col image coordinates to x, y, z."""
 
-    def __init__(self, row=None, col=None, x=None, y=None, z=None,
-                 id=None, info=None):
+    def __init__(self, row=None, col=None, x=None, y=None, z=None, id=None, info=None):
         """Create a new ground control point
 
         Parameters
@@ -38,15 +37,26 @@ class GroundControlPoint(object):
         self.z = z
 
     def __repr__(self):
-        args = ', '.join(['{}={}'.format(att, repr(getattr(self, att)))
-                         for att in ('row', 'col', 'x', 'y', 'z', 'id', 'info')
-                         if getattr(self, att) is not None])
+        args = ", ".join(
+            [
+                "{}={}".format(att, repr(getattr(self, att)))
+                for att in ("row", "col", "x", "y", "z", "id", "info")
+                if getattr(self, att) is not None
+            ]
+        )
         return "GroundControlPoint({})".format(args)
 
     def asdict(self):
         """A dict representation of the GCP"""
-        return {'id': self.id, 'info': self.info, 'row': self.row,
-                'col': self.col, 'x': self.x, 'y': self.y, 'z': self.z}
+        return {
+            "id": self.id,
+            "info": self.info,
+            "row": self.row,
+            "col": self.col,
+            "x": self.x,
+            "y": self.y,
+            "z": self.z,
+        }
 
     @property
     def __geo_interface__(self):
@@ -54,6 +64,9 @@ class GroundControlPoint(object):
         coords = [self.x, self.y]
         if self.z is not None:
             coords.append(self.z)
-        return {'id': self.id, 'type': 'Feature',
-                'geometry': {'type': 'Point', 'coordinates': tuple(coords)},
-                'properties': self.asdict()}
+        return {
+            "id": self.id,
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": tuple(coords)},
+            "properties": self.asdict(),
+        }

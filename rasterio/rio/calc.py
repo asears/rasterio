@@ -21,8 +21,7 @@ def _get_bands(inputs, sources, d, i=None):
     """Get a rasterio.Band object from calc's inputs"""
     idx = d if d in dict(inputs) else int(d) - 1
     src = sources[idx]
-    return (rasterio.band(src, i) if i else
-            [rasterio.band(src, j) for j in src.indexes])
+    return rasterio.band(src, i) if i else [rasterio.band(src, j) for j in src.indexes]
 
 
 def _read_array(ix, subix=None, dtype=None):
@@ -59,7 +58,7 @@ def _chunk_output(width, height, count, itemsize, mem_limit=1):
     -------
     sequence of Windows
     """
-    max_pixels = mem_limit * 1.0e+6 / itemsize * count
+    max_pixels = mem_limit * 1.0e6 / itemsize * count
     chunk_size = int(math.floor(math.sqrt(max_pixels)))
     ncols = int(math.ceil(width / chunk_size))
     nrows = int(math.ceil(height / chunk_size))
@@ -77,21 +76,41 @@ def _chunk_output(width, height, count, itemsize, mem_limit=1):
 
 
 @click.command(short_help="Raster data calculator.")
-@click.argument('command')
+@click.argument("command")
 @options.files_inout_arg
 @options.output_opt
 @options.format_opt
-@click.option('--name', multiple=True,
-              help='Specify an input file with a unique short (alphas only) '
-                   'name for use in commands like '
-                   '"a=tests/data/RGB.byte.tif".')
+@click.option(
+    "--name",
+    multiple=True,
+    help="Specify an input file with a unique short (alphas only) "
+    "name for use in commands like "
+    '"a=tests/data/RGB.byte.tif".',
+)
 @options.dtype_opt
 @options.masked_opt
 @options.overwrite_opt
-@click.option("--mem-limit", type=int, default=64, help="Limit on memory used to perform calculations, in MB.")
+@click.option(
+    "--mem-limit",
+    type=int,
+    default=64,
+    help="Limit on memory used to perform calculations, in MB.",
+)
 @options.creation_options
 @click.pass_context
-def calc(ctx, command, files, output, driver, name, dtype, masked, overwrite, mem_limit, creation_options):
+def calc(
+    ctx,
+    command,
+    files,
+    output,
+    driver,
+    name,
+    dtype,
+    masked,
+    overwrite,
+    mem_limit,
+    creation_options,
+):
     """A raster data calculator
 
     Evaluates an expression using input datasets and writes the result
@@ -140,28 +159,28 @@ def calc(ctx, command, files, output, driver, name, dtype, masked, overwrite, me
     sources = []
 
     try:
-        with ctx.obj['env']:
-            output, files = resolve_inout(files=files, output=output,
-                                          overwrite=overwrite)
-            inputs = ([tuple(n.split('=')) for n in name] +
-                      [(None, n) for n in files])
+        with ctx.obj["env"]:
+            output, files = resolve_inout(
+                files=files, output=output, overwrite=overwrite
+            )
+            inputs = [tuple(n.split("=")) for n in name] + [(None, n) for n in files]
             sources = [rasterio.open(path) for name, path in inputs]
 
             first = sources[0]
             kwargs = first.profile
             kwargs.update(**creation_options)
-            dtype = dtype or first.meta['dtype']
-            kwargs['dtype'] = dtype
+            dtype = dtype or first.meta["dtype"]
+            kwargs["dtype"] = dtype
             kwargs.pop("driver", None)
             if driver:
-                kwargs['driver'] = driver
+                kwargs["driver"] = driver
 
             # Extend snuggs.
-            snuggs.func_map['read'] = _read_array
-            snuggs.func_map['band'] = lambda d, i: _get_bands(inputs, sources, d, i)
-            snuggs.func_map['bands'] = lambda d: _get_bands(inputs, sources, d)
-            snuggs.func_map['fillnodata'] = lambda *args: fillnodata(*args)
-            snuggs.func_map['sieve'] = lambda *args: sieve(*args)
+            snuggs.func_map["read"] = _read_array
+            snuggs.func_map["band"] = lambda d, i: _get_bands(inputs, sources, d, i)
+            snuggs.func_map["bands"] = lambda d: _get_bands(inputs, sources, d)
+            snuggs.func_map["fillnodata"] = lambda *args: fillnodata(*args)
+            snuggs.func_map["sieve"] = lambda *args: sieve(*args)
 
             # The windows iterator is initialized with a single sample.
             # The actual work windows will be added in the second
@@ -182,27 +201,37 @@ def calc(ctx, command, files, output, driver, name, dtype, masked, overwrite, me
                     #
                     # possibly something to do with the instance being
                     # a masked array.
-                    ctxkwds[name or '_i%d' % (i + 1)] = src.read(masked=masked, window=window)
+                    ctxkwds[name or "_i%d" % (i + 1)] = src.read(
+                        masked=masked, window=window
+                    )
 
                 res = snuggs.eval(command, **ctxkwds)
 
-                if (isinstance(res, np.ma.core.MaskedArray) and (
-                        tuple(LooseVersion(np.__version__).version) < (1, 9) or
-                        tuple(LooseVersion(np.__version__).version) > (1, 10))):
-                    res = res.filled(kwargs['nodata'])
+                if isinstance(res, np.ma.core.MaskedArray) and (
+                    tuple(LooseVersion(np.__version__).version) < (1, 9)
+                    or tuple(LooseVersion(np.__version__).version) > (1, 10)
+                ):
+                    res = res.filled(kwargs["nodata"])
 
                 if len(res.shape) == 3:
                     results = np.ndarray.astype(res, dtype, copy=False)
                 else:
-                    results = np.asanyarray(
-                        [np.ndarray.astype(res, dtype, copy=False)])
+                    results = np.asanyarray([np.ndarray.astype(res, dtype, copy=False)])
 
                 # The first iteration is only to get sample results and from them
                 # compute some properties of the output dataset.
                 if dst is None:
-                    kwargs['count'] = results.shape[0]
-                    dst = rasterio.open(output, 'w', **kwargs)
-                    work_windows.extend(_chunk_output(dst.width, dst.height, dst.count, np.dtype(dst.dtypes[0]).itemsize, mem_limit=mem_limit))
+                    kwargs["count"] = results.shape[0]
+                    dst = rasterio.open(output, "w", **kwargs)
+                    work_windows.extend(
+                        _chunk_output(
+                            dst.width,
+                            dst.height,
+                            dst.count,
+                            np.dtype(dst.dtypes[0]).itemsize,
+                            mem_limit=mem_limit,
+                        )
+                    )
 
                 # In subsequent iterations we write results.
                 else:

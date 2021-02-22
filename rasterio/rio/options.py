@@ -65,7 +65,7 @@ class IgnoreOptionMarker(object):
     """
 
     def __repr__(self):
-        return 'IgnoreOption()'
+        return "IgnoreOption()"
 
 
 IgnoreOption = IgnoreOptionMarker()
@@ -91,20 +91,21 @@ def _cb_key_val(ctx, param, value):
     else:
         out = {}
         for pair in value:
-            if '=' not in pair:
+            if "=" not in pair:
                 raise click.BadParameter(
-                    "Invalid syntax for KEY=VAL arg: {}".format(pair))
+                    "Invalid syntax for KEY=VAL arg: {}".format(pair)
+                )
             else:
-                k, v = pair.split('=', 1)
+                k, v = pair.split("=", 1)
                 k = k.lower()
                 v = v.lower()
-                out[k] = None if v.lower() in ['none', 'null', 'nil', 'nada'] else v
+                out[k] = None if v.lower() in ["none", "null", "nil", "nada"] else v
         return out
 
 
 def abspath_forward_slashes(path):
     """Return forward-slashed version of os.path.abspath"""
-    return '/'.join(os.path.abspath(path).split(os.path.sep))
+    return "/".join(os.path.abspath(path).split(os.path.sep))
 
 
 def file_in_handler(ctx, param, value):
@@ -127,15 +128,13 @@ def file_in_handler(ctx, param, value):
                 archive = abspath_forward_slashes(path.archive)
                 return "{}://{}!{}".format(path.scheme, archive, path.path)
             else:
-                raise IOError(
-                    "Input archive {} does not exist".format(path.archive))
+                raise IOError("Input archive {} does not exist".format(path.archive))
 
         else:
             if os.path.exists(path.path) and rasterio.shutil.exists(value):
                 return abspath_forward_slashes(path.path)
             else:
-                raise IOError(
-                    "Input file {} does not exist".format(path.path))
+                raise IOError("Input file {} does not exist".format(path.path))
 
     except Exception:
         raise click.BadParameter("{} is not a valid input file".format(value))
@@ -148,15 +147,16 @@ def files_in_handler(ctx, param, value):
 
 def files_inout_handler(ctx, param, value):
     """Process and validate input file names"""
-    return tuple(file_in_handler(ctx, param, item) for item in value[:-1]) + tuple(value[-1:])
+    return tuple(file_in_handler(ctx, param, item) for item in value[:-1]) + tuple(
+        value[-1:]
+    )
 
 
 def from_like_context(ctx, param, value):
     """Return the value for an option from the context if the option
     or `--all` is given, else return None."""
-    if ctx.obj and ctx.obj.get('like') and (
-            value == 'like' or ctx.obj.get('all_like')):
-        return ctx.obj['like'][param.name]
+    if ctx.obj and ctx.obj.get("like") and (value == "like" or ctx.obj.get("all_like")):
+        return ctx.obj["like"][param.name]
     else:
         return None
 
@@ -169,10 +169,10 @@ def like_handler(ctx, param, value):
     if value:
         with rasterio.open(value) as src:
             metadata = src.meta
-            ctx.obj['like'] = metadata
-            ctx.obj['like']['transform'] = metadata['transform']
-            ctx.obj['like']['tags'] = src.tags()
-            ctx.obj['like']['colorinterp'] = src.colorinterp
+            ctx.obj["like"] = metadata
+            ctx.obj["like"]["transform"] = metadata["transform"]
+            ctx.obj["like"]["tags"] = src.tags()
+            ctx.obj["like"]["colorinterp"] = src.colorinterp
         return True
     else:  # pragma: no cover
         return False
@@ -182,15 +182,15 @@ def nodata_handler(ctx, param, value):
     """Return a float or None"""
     if value is None or value is IgnoreOption:
         return value
-    elif value.lower() in ['null', 'nil', 'none', 'nada']:
+    elif value.lower() in ["null", "nil", "none", "nada"]:
         return None
     else:
         try:
             return float(value)
         except (TypeError, ValueError):
             raise click.BadParameter(
-                "{!r} is not a number".format(value),
-                param=param, param_hint='nodata')
+                "{!r} is not a number".format(value), param=param, param_hint="nodata"
+            )
 
 
 def edit_nodata_handler(ctx, param, value):
@@ -199,7 +199,7 @@ def edit_nodata_handler(ctx, param, value):
     Expected values are 'like', 'null', a numeric value, 'nan', or
     IgnoreOption. Anything else should raise BadParameter.
     """
-    if value == 'like' or value is IgnoreOption:
+    if value == "like" or value is IgnoreOption:
         retval = from_like_context(ctx, param, value)
         if retval is not None:
             return retval
@@ -211,161 +211,195 @@ def bounds_handler(ctx, param, value):
     retval = from_like_context(ctx, param, value)
     if retval is None and value is not None:
         try:
-            value = value.strip(', []')
-            retval = tuple(float(x) for x in re.split(r'[,\s]+', value))
+            value = value.strip(", []")
+            retval = tuple(float(x) for x in re.split(r"[,\s]+", value))
             assert len(retval) == 4
             return retval
         except Exception:
             raise click.BadParameter(
-                "{0!r} is not a valid bounding box representation".format(
-                    value))
+                "{0!r} is not a valid bounding box representation".format(value)
+            )
     else:  # pragma: no cover
         return retval
 
 
 # Singular input file
-file_in_arg = click.argument('INPUT', callback=file_in_handler)
+file_in_arg = click.argument("INPUT", callback=file_in_handler)
 
 # Singular output file
-file_out_arg = click.argument(
-    'OUTPUT',
-    type=click.Path(resolve_path=True))
+file_out_arg = click.argument("OUTPUT", type=click.Path(resolve_path=True))
 
 # Multiple input files.
 files_in_arg = click.argument(
-    'files',
+    "files",
     nargs=-1,
     type=click.Path(),
     required=True,
     metavar="INPUTS...",
-    callback=files_in_handler)
+    callback=files_in_handler,
+)
 
 # Multiple files, last of which is an output file.
 files_inout_arg = click.argument(
-    'files',
+    "files",
     nargs=-1,
     type=click.Path(),
     required=True,
     metavar="INPUTS... OUTPUT",
-    callback=files_inout_handler)
+    callback=files_inout_handler,
+)
 
 bidx_opt = click.option(
-    '-b', '--bidx',
-    type=int,
-    default=1,
-    help="Input file band index (default: 1).")
+    "-b", "--bidx", type=int, default=1, help="Input file band index (default: 1)."
+)
 
 bidx_mult_opt = click.option(
-    '-b', '--bidx',
-    type=int,
-    multiple=True,
-    help="Indexes of input file bands.")
+    "-b", "--bidx", type=int, multiple=True, help="Indexes of input file bands."
+)
 
 # The 'magic' --bidx option is especially for rio-stack, which supports
 # selection of multiple bands from multiple files. It has 'str' type
 # instead of 'int' to support ranges in a syntax like `--bidx 1..3`.
 bidx_magic_opt = click.option(
-    '-b', '--bidx',
-    multiple=True,
-    help="Indexes of input file bands.")
+    "-b", "--bidx", multiple=True, help="Indexes of input file bands."
+)
 
 # TODO: may be better suited to cligj
 bounds_opt = click.option(
-    '--bounds', default=None, callback=bounds_handler,
-    help='Bounds: "left bottom right top" or "[left, bottom, right, top]".')
+    "--bounds",
+    default=None,
+    callback=bounds_handler,
+    help='Bounds: "left bottom right top" or "[left, bottom, right, top]".',
+)
 
 dimensions_opt = click.option(
-    '--dimensions',
-    nargs=2, type=int, default=None,
-    help='Output dataset width, height in number of pixels.')
+    "--dimensions",
+    nargs=2,
+    type=int,
+    default=None,
+    help="Output dataset width, height in number of pixels.",
+)
 
 dtype_opt = click.option(
-    '-t', '--dtype',
-    type=click.Choice([
-        'ubyte', 'uint8', 'uint16', 'int16', 'uint32', 'int32',
-        'float32', 'float64']),
+    "-t",
+    "--dtype",
+    type=click.Choice(
+        ["ubyte", "uint8", "uint16", "int16", "uint32", "int32", "float32", "float64"]
+    ),
     default=None,
-    help="Output data type.")
+    help="Output data type.",
+)
 
 like_file_opt = click.option(
-    '--like',
+    "--like",
     type=click.Path(exists=True),
-    help='Raster dataset to use as a template for obtaining affine '
-         'transform (bounds and resolution), crs, data type, and driver '
-         'used to create the output.')
+    help="Raster dataset to use as a template for obtaining affine "
+    "transform (bounds and resolution), crs, data type, and driver "
+    "used to create the output.",
+)
 
 masked_opt = click.option(
-    '--masked/--not-masked',
+    "--masked/--not-masked",
     default=True,
     help="Evaluate expressions using masked arrays (the default) or ordinary "
-         "numpy arrays.")
+    "numpy arrays.",
+)
 
 output_opt = click.option(
-    '-o', '--output',
+    "-o",
+    "--output",
     default=None,
     type=click.Path(resolve_path=True),
-    help="Path to output file (optional alternative to a positional arg).")
+    help="Path to output file (optional alternative to a positional arg).",
+)
 
 resolution_opt = click.option(
-    '-r', '--res',
-    multiple=True, type=float, default=None,
-    help='Output dataset resolution in units of coordinate '
-         'reference system. Pixels assumed to be square if this option '
-         'is used once, otherwise use: '
-         '--res pixel_width --res pixel_height.')
+    "-r",
+    "--res",
+    multiple=True,
+    type=float,
+    default=None,
+    help="Output dataset resolution in units of coordinate "
+    "reference system. Pixels assumed to be square if this option "
+    "is used once, otherwise use: "
+    "--res pixel_width --res pixel_height.",
+)
 
 creation_options = click.option(
-    '--co', '--profile', 'creation_options',
-    metavar='NAME=VALUE',
+    "--co",
+    "--profile",
+    "creation_options",
+    metavar="NAME=VALUE",
     multiple=True,
     callback=_cb_key_val,
     help="Driver specific creation options. "
-         "See the documentation for the selected output driver for "
-         "more information.")
+    "See the documentation for the selected output driver for "
+    "more information.",
+)
 
 rgb_opt = click.option(
-    '--rgb', 'photometric',
-    flag_value='rgb',
+    "--rgb",
+    "photometric",
+    flag_value="rgb",
     default=False,
-    help="Set RGB photometric interpretation.")
+    help="Set RGB photometric interpretation.",
+)
 
 overwrite_opt = click.option(
-    '--overwrite', 'overwrite',
-    is_flag=True, type=bool, default=False,
-    help="Always overwrite an existing output file.")
+    "--overwrite",
+    "overwrite",
+    is_flag=True,
+    type=bool,
+    default=False,
+    help="Always overwrite an existing output file.",
+)
 
 nodata_opt = click.option(
-    '--nodata', callback=nodata_handler, default=None,
-    metavar='NUMBER|nan', help="Set a Nodata value.")
+    "--nodata",
+    callback=nodata_handler,
+    default=None,
+    metavar="NUMBER|nan",
+    help="Set a Nodata value.",
+)
 
 edit_nodata_opt = click.option(
-    '--nodata', callback=edit_nodata_handler, default=IgnoreOption,
-    metavar='NUMBER|nan|null', help="Modify the Nodata value.")
+    "--nodata",
+    callback=edit_nodata_handler,
+    default=IgnoreOption,
+    metavar="NUMBER|nan|null",
+    help="Modify the Nodata value.",
+)
 
 like_opt = click.option(
-    '--like',
+    "--like",
     type=click.Path(exists=True),
     callback=like_handler,
     is_eager=True,
     help="Raster dataset to use as a template for obtaining affine "
-         "transform (bounds and resolution), crs, and nodata values.")
+    "transform (bounds and resolution), crs, and nodata values.",
+)
 
 all_touched_opt = click.option(
-    '-a', '--all', '--all_touched', 'all_touched',
+    "-a",
+    "--all",
+    "--all_touched",
+    "all_touched",
     is_flag=True,
     default=False,
-    help='Use all pixels touched by features, otherwise (default) use only '
-         'pixels whose center is within the polygon or that are selected by '
-         'Bresenhams line algorithm')
+    help="Use all pixels touched by features, otherwise (default) use only "
+    "pixels whose center is within the polygon or that are selected by "
+    "Bresenhams line algorithm",
+)
 
 # Feature collection or feature sequence switch.
 sequence_opt = click.option(
-    '--sequence/--collection',
+    "--sequence/--collection",
     default=True,
     help="Write a LF-delimited sequence of texts containing individual "
-         "objects (the default) or write a single JSON text containing a "
-         "feature collection object.")
+    "objects (the default) or write a single JSON text containing a "
+    "feature collection object.",
+)
 
 format_opt = click.option(
-    '-f', '--format', '--driver', 'driver',
-    help="Output format driver")
+    "-f", "--format", "--driver", "driver", help="Output format driver"
+)

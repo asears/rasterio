@@ -11,36 +11,44 @@ gdal_version = GDALVersion.runtime()
 
 
 def test_window_transform():
-    with rasterio.open('tests/data/RGB.byte.tif') as src:
+    with rasterio.open("tests/data/RGB.byte.tif") as src:
         assert src.window_transform(((0, None), (0, None))) == src.transform
         assert src.window_transform(((None, None), (None, None))) == src.transform
-        assert src.window_transform(
-            ((1, None), (1, None))).c == src.bounds.left + src.res[0]
-        assert src.window_transform(
-            ((1, None), (1, None))).f == src.bounds.top - src.res[1]
-        assert src.window_transform(
-            ((-1, None), (-1, None))).c == src.bounds.left - src.res[0]
-        assert src.window_transform(
-            ((-1, None), (-1, None))).f == src.bounds.top + src.res[1]
+        assert (
+            src.window_transform(((1, None), (1, None))).c
+            == src.bounds.left + src.res[0]
+        )
+        assert (
+            src.window_transform(((1, None), (1, None))).f
+            == src.bounds.top - src.res[1]
+        )
+        assert (
+            src.window_transform(((-1, None), (-1, None))).c
+            == src.bounds.left - src.res[0]
+        )
+        assert (
+            src.window_transform(((-1, None), (-1, None))).f
+            == src.bounds.top + src.res[1]
+        )
 
 
 def test_from_origin():
-    with rasterio.open('tests/data/RGB.byte.tif') as src:
-        w, n = src.xy(0, 0, offset='ul')
+    with rasterio.open("tests/data/RGB.byte.tif") as src:
+        w, n = src.xy(0, 0, offset="ul")
         xs, ys = src.res
         tr = transform.from_origin(w, n, xs, ys)
         assert [round(v, 7) for v in tr] == [round(v, 7) for v in src.transform]
 
 
 def test_from_bounds():
-    with rasterio.open('tests/data/RGB.byte.tif') as src:
+    with rasterio.open("tests/data/RGB.byte.tif") as src:
         w, s, e, n = src.bounds
         tr = transform.from_bounds(w, s, e, n, src.width, src.height)
         assert [round(v, 7) for v in tr] == [round(v, 7) for v in src.transform]
 
 
 def test_array_bounds():
-    with rasterio.open('tests/data/RGB.byte.tif') as src:
+    with rasterio.open("tests/data/RGB.byte.tif") as src:
         w, s, e, n = src.bounds
         height = src.height
         width = src.width
@@ -49,7 +57,7 @@ def test_array_bounds():
 
 
 def test_window_bounds():
-    with rasterio.open('tests/data/RGB.byte.tif') as src:
+    with rasterio.open("tests/data/RGB.byte.tif") as src:
 
         rows = src.height
         cols = src.width
@@ -64,17 +72,18 @@ def test_window_bounds():
 
 
 def test_affine_roundtrip(tmpdir):
-    output = str(tmpdir.join('test.tif'))
+    output = str(tmpdir.join("test.tif"))
     out_affine = Affine(2, 0, 0, 0, -2, 0)
 
     with rasterio.open(
-        output, 'w',
-        driver='GTiff',
+        output,
+        "w",
+        driver="GTiff",
         count=1,
         dtype=rasterio.uint8,
         width=1,
         height=1,
-        transform=out_affine
+        transform=out_affine,
     ) as out:
         assert out.transform == out_affine
 
@@ -83,8 +92,8 @@ def test_affine_roundtrip(tmpdir):
 
 
 @pytest.mark.skipif(
-    gdal_version.at_least('2.3'),
-    reason="Test only applicable to GDAL < 2.3")
+    gdal_version.at_least("2.3"), reason="Test only applicable to GDAL < 2.3"
+)
 def test_affine_identity(tmpdir):
     """
     Setting a transform with absolute values equivalent to Affine.identity()
@@ -92,17 +101,18 @@ def test_affine_identity(tmpdir):
     affine that matches Affine.identity().
     """
 
-    output = str(tmpdir.join('test.tif'))
+    output = str(tmpdir.join("test.tif"))
     out_affine = Affine(1, 0, 0, 0, -1, 0)
 
     with rasterio.open(
-        output, 'w',
-        driver='GTiff',
+        output,
+        "w",
+        driver="GTiff",
         count=1,
         dtype=rasterio.uint8,
         width=1,
         height=1,
-        transform=out_affine
+        transform=out_affine,
     ) as out:
         assert out.transform == out_affine
 
@@ -132,27 +142,28 @@ def test_from_bounds_two():
 
 
 def test_xy():
-    aff = Affine(300.0379266750948, 0.0, 101985.0,
-                 0.0, -300.041782729805, 2826915.0)
+    aff = Affine(300.0379266750948, 0.0, 101985.0, 0.0, -300.041782729805, 2826915.0)
     ul_x, ul_y = aff * (0, 0)
     xoff = aff.a
     yoff = aff.e
-    assert xy(aff, 0, 0, offset='ul') == (ul_x, ul_y)
-    assert xy(aff, 0, 0, offset='ur') == (ul_x + xoff, ul_y)
-    assert xy(aff, 0, 0, offset='ll') == (ul_x, ul_y + yoff)
+    assert xy(aff, 0, 0, offset="ul") == (ul_x, ul_y)
+    assert xy(aff, 0, 0, offset="ur") == (ul_x + xoff, ul_y)
+    assert xy(aff, 0, 0, offset="ll") == (ul_x, ul_y + yoff)
     expected = (ul_x + xoff, ul_y + yoff)
-    assert xy(aff, 0, 0, offset='lr') == expected
+    assert xy(aff, 0, 0, offset="lr") == expected
     expected = (ul_x + xoff / 2, ul_y + yoff / 2)
-    assert xy(aff, 0, 0, offset='center') == expected
-    assert xy(aff, 0, 0, offset='lr') == \
-        xy(aff, 0, 1, offset='ll') == \
-        xy(aff, 1, 1, offset='ul') == \
-        xy(aff, 1, 0, offset='ur')
+    assert xy(aff, 0, 0, offset="center") == expected
+    assert (
+        xy(aff, 0, 0, offset="lr")
+        == xy(aff, 0, 1, offset="ll")
+        == xy(aff, 1, 1, offset="ul")
+        == xy(aff, 1, 0, offset="ur")
+    )
 
 
 def test_bogus_offset():
     with pytest.raises(ValueError):
-        xy(None, 1, 0, offset='bogus')
+        xy(None, 1, 0, offset="bogus")
 
 
 def test_guard_transform_gdal_TypeError(path_rgb_byte_tif):
@@ -173,7 +184,7 @@ def test_tastes_like_gdal_identity():
 
 
 def test_rowcol():
-    with rasterio.open("tests/data/RGB.byte.tif", 'r') as src:
+    with rasterio.open("tests/data/RGB.byte.tif", "r") as src:
         aff = src.transform
         left, bottom, right, top = src.bounds
         assert rowcol(aff, left, top) == (0, 0)
@@ -188,13 +199,12 @@ def test_xy_rowcol_inverse():
     # TODO this is an ideal candiate for
     # property-based testing with hypothesis
     aff = Affine.identity()
-    rows_cols = ([0, 0, 10, 10],
-                 [0, 10, 0, 10])
+    rows_cols = ([0, 0, 10, 10], [0, 10, 0, 10])
     assert rows_cols == rowcol(aff, *xy(aff, *rows_cols))
 
 
 def test_from_gcps():
-    with rasterio.open("tests/data/white-gemini-iv.vrt", 'r') as src:
+    with rasterio.open("tests/data/white-gemini-iv.vrt", "r") as src:
         aff = transform.from_gcps(src.gcps[0])
         assert not aff == src.transform
         assert len(aff) == 9

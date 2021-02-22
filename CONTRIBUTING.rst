@@ -141,8 +141,8 @@ Installing GDAL
 ^^^^^^^^^^^^^^^
 
 The GDAL library and its headers are required to build Rasterio. We do not
-have currently have guidance for any platforms other than Linux and OS X.
-
+currently have guidance for any platforms other than Linux and OS X.
+<!-- TODO Windows GAL guidance -->
 On Linux, GDAL and its headers should be available through your distro's
 package manager. For Ubuntu the commands are:
 

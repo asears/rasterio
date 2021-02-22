@@ -19,7 +19,8 @@ from rasterio.env import GDALVersion, ensure_env, require_gdal_version
 blacklist = {
     # See https://github.com/mapbox/rasterio/issues/638 for discussion
     # about writing NetCDF files.
-    'netCDF': ('r+', 'w')}
+    "netCDF": ("r+", "w")
+}
 
 
 @ensure_env
@@ -56,14 +57,14 @@ def driver_from_extension(path):
         pass
 
     # dynamic driver extension lists added in GDAL 2
-    if GDALVersion().runtime() < GDALVersion.parse('2.0'):
+    if GDALVersion().runtime() < GDALVersion.parse("2.0"):
         # basic list for GDAL 1
         driver_extensions = {
-            'tif': 'GTiff',
-            'tiff': 'GTiff',
-            'png': 'PNG',
-            'jpg': 'JPEG',
-            'jpeg': 'JPEG',
+            "tif": "GTiff",
+            "tiff": "GTiff",
+            "png": "PNG",
+            "jpg": "JPEG",
+            "jpeg": "JPEG",
         }
     else:
         driver_extensions = raster_driver_extensions()

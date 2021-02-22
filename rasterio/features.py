@@ -25,12 +25,7 @@ log = logging.getLogger(__name__)
 
 
 @ensure_env
-def geometry_mask(
-        geometries,
-        out_shape,
-        transform,
-        all_touched=False,
-        invert=False):
+def geometry_mask(geometries, out_shape, transform, all_touched=False, invert=False):
     """Create a mask from shapes.
 
     By default, mask is intended for use as a
@@ -71,7 +66,8 @@ def geometry_mask(
         transform=transform,
         all_touched=all_touched,
         fill=fill,
-        default_value=mask_value).astype('bool')
+        default_value=mask_value,
+    ).astype("bool")
 
 
 @ensure_env
@@ -119,7 +115,7 @@ def shapes(source, mask=None, connectivity=4, transform=IDENTITY):
     truncation issues.
 
     """
-    if hasattr(source, 'mask') and mask is None:
+    if hasattr(source, "mask") and mask is None:
         mask = ~source.mask
         source = source.data
 
@@ -175,15 +171,16 @@ def sieve(source, size, out=None, mask=None, connectivity=4):
 
 @ensure_env
 def rasterize(
-        shapes,
-        out_shape=None,
-        fill=0,
-        out=None,
-        transform=IDENTITY,
-        all_touched=False,
-        merge_alg=MergeAlg.replace,
-        default_value=1,
-        dtype=None):
+    shapes,
+    out_shape=None,
+    fill=0,
+    out=None,
+    transform=IDENTITY,
+    all_touched=False,
+    merge_alg=MergeAlg.replace,
+    default_value=1,
+    dtype=None,
+):
     """Return an image array with input geometries burned in.
 
     Warnings will be raised for any invalid or empty geometries, and
@@ -249,36 +246,32 @@ def rasterize(
     GDAL_CACHEMAX is larger than the size of `out` or `out_shape`.
 
     """
-    valid_dtypes = (
-        'int16', 'int32', 'uint8', 'uint16', 'uint32', 'float32', 'float64'
-    )
+    valid_dtypes = ("int16", "int32", "uint8", "uint16", "uint32", "float32", "float64")
 
     def format_invalid_dtype(param):
-        return '{0} dtype must be one of: {1}'.format(
-            param, ', '.join(valid_dtypes)
-        )
+        return "{0} dtype must be one of: {1}".format(param, ", ".join(valid_dtypes))
 
     def format_cast_error(param, dtype):
-        return '{0} cannot be cast to specified dtype: {1}'.format(param, dtype)
+        return "{0} cannot be cast to specified dtype: {1}".format(param, dtype)
 
     if fill != 0:
         fill_array = np.array([fill])
         if not validate_dtype(fill_array, valid_dtypes):
-            raise ValueError(format_invalid_dtype('fill'))
+            raise ValueError(format_invalid_dtype("fill"))
 
         if dtype is not None and not can_cast_dtype(fill_array, dtype):
-            raise ValueError(format_cast_error('fill', dtype))
+            raise ValueError(format_cast_error("fill", dtype))
 
     if default_value != 1:
         default_value_array = np.array([default_value])
         if not validate_dtype(default_value_array, valid_dtypes):
-            raise ValueError(format_invalid_dtype('default_value'))
+            raise ValueError(format_invalid_dtype("default_value"))
 
         if dtype is not None and not can_cast_dtype(default_value_array, dtype):
-            raise ValueError(format_cast_error('default_vaue', dtype))
+            raise ValueError(format_cast_error("default_vaue", dtype))
 
     if dtype is not None and np.dtype(dtype).name not in valid_dtypes:
-        raise ValueError(format_invalid_dtype('dtype'))
+        raise ValueError(format_invalid_dtype("dtype"))
 
     valid_shapes = []
     shape_values = []
@@ -290,65 +283,72 @@ def rasterize(
         else:
             geom = item
             value = default_value
-        geom = getattr(geom, '__geo_interface__', None) or geom
+        geom = getattr(geom, "__geo_interface__", None) or geom
 
         if is_valid_geom(geom):
             shape_values.append(value)
 
-            geom_type = geom['type']
+            geom_type = geom["type"]
 
-            if geom_type == 'GeometryCollection':
+            if geom_type == "GeometryCollection":
                 # GeometryCollections need to be handled as individual parts to
                 # avoid holes in output:
                 # https://github.com/mapbox/rasterio/issues/1253.
                 # Only 1-level deep since GeoJSON spec discourages nested
                 # GeometryCollections
-                for part in geom['geometries']:
+                for part in geom["geometries"]:
                     valid_shapes.append((part, value))
 
-            elif geom_type == 'MultiPolygon':
+            elif geom_type == "MultiPolygon":
                 # Same issue as above
-                for poly in geom['coordinates']:
-                    valid_shapes.append(({'type': 'Polygon', 'coordinates': poly}, value))
+                for poly in geom["coordinates"]:
+                    valid_shapes.append(
+                        ({"type": "Polygon", "coordinates": poly}, value)
+                    )
 
             else:
                 valid_shapes.append((geom, value))
 
         else:
             # invalid or empty geometries are skipped and raise a warning instead
-            warnings.warn('Invalid or empty shape {} at index {} will not be rasterized.'.format(geom, index), ShapeSkipWarning)
+            warnings.warn(
+                "Invalid or empty shape {} at index {} will not be rasterized.".format(
+                    geom, index
+                ),
+                ShapeSkipWarning,
+            )
 
     if not valid_shapes:
-        raise ValueError('No valid geometry objects found for rasterize')
+        raise ValueError("No valid geometry objects found for rasterize")
 
     shape_values = np.array(shape_values)
 
     if not validate_dtype(shape_values, valid_dtypes):
-        raise ValueError(format_invalid_dtype('shape values'))
+        raise ValueError(format_invalid_dtype("shape values"))
 
     if dtype is None:
         dtype = get_minimum_dtype(np.append(shape_values, fill))
 
     elif not can_cast_dtype(shape_values, dtype):
-        raise ValueError(format_cast_error('shape values', dtype))
+        raise ValueError(format_cast_error("shape values", dtype))
 
     if out is not None:
         if np.dtype(out.dtype).name not in valid_dtypes:
-            raise ValueError(format_invalid_dtype('out'))
+            raise ValueError(format_invalid_dtype("out"))
 
         if not can_cast_dtype(shape_values, out.dtype):
-            raise ValueError(format_cast_error('shape values', out.dtype.name))
+            raise ValueError(format_cast_error("shape values", out.dtype.name))
 
     elif out_shape is not None:
 
         if len(out_shape) != 2:
-            raise ValueError('Invalid out_shape, must be 2D')
+            raise ValueError("Invalid out_shape, must be 2D")
 
         out = np.empty(out_shape, dtype=dtype)
         out.fill(fill)
 
     else:
-        raise ValueError('Either an out_shape or image must be provided')
+        raise ValueError("Either an out_shape or image must be provided")
 
     if min(out.shape) == 0:
         raise ValueError("width and height must be > 0")
@@ -374,15 +374,15 @@ def bounds(geometry, north_up=True, transform=None):
         Bounding box: (left, bottom, right, top)
     """
 
-    geometry = getattr(geometry, '__geo_interface__', None) or geometry
+    geometry = getattr(geometry, "__geo_interface__", None) or geometry
 
-    if 'bbox' in geometry:
-        return tuple(geometry['bbox'])
+    if "bbox" in geometry:
+        return tuple(geometry["bbox"])
 
-    geom = geometry.get('geometry') or geometry
+    geom = geometry.get("geometry") or geometry
 
     # geometry must be a geometry, GeometryCollection, or FeatureCollection
-    if not ('coordinates' in geom or 'geometries' in geom or 'features' in geom):
+    if not ("coordinates" in geom or "geometries" in geom or "features" in geom):
         raise ValueError(
             "geometry must be a GeoJSON-like geometry, GeometryCollection, "
             "or FeatureCollection"
@@ -391,8 +391,9 @@ def bounds(geometry, north_up=True, transform=None):
     return _bounds(geom, north_up=north_up, transform=transform)
 
 
-def geometry_window(dataset, shapes, pad_x=0, pad_y=0, north_up=True,
-                    rotated=False, pixel_precision=3):
+def geometry_window(
+    dataset, shapes, pad_x=0, pad_y=0, north_up=True, rotated=False, pixel_precision=3
+):
     """Calculate the window within the raster that fits the bounds of the
     geometry plus optional padding.  The window is the outermost pixel indices
     that contain the geometry (floor of offsets, ceiling of width and height).
@@ -447,7 +448,9 @@ def geometry_window(dataset, shapes, pad_x=0, pad_y=0, north_up=True,
             top = min(tops) - pad_y
     else:
         # get the bounds in the pixel domain by specifying a transform to the bounds function
-        all_bounds_px = [bounds(shape, transform=~dataset.transform) for shape in shapes]
+        all_bounds_px = [
+            bounds(shape, transform=~dataset.transform) for shape in shapes
+        ]
         # get left, right, top, and bottom as above
         lefts, bottoms, rights, tops = zip(*all_bounds_px)
         left = min(lefts) - pad_x
@@ -464,7 +467,7 @@ def geometry_window(dataset, shapes, pad_x=0, pad_y=0, north_up=True,
         right, bottom = dataset.transform * (right, bottom)
 
     window = dataset.window(left, bottom, right, top)
-    window_floored = window.round_offsets(op='floor', pixel_precision=pixel_precision)
+    window_floored = window.round_offsets(op="floor", pixel_precision=pixel_precision)
     w = math.ceil(window.width + window.col_off - window_floored.col_off)
     h = math.ceil(window.height + window.row_off - window_floored.row_off)
     window = Window(window_floored.col_off, window_floored.row_off, w, h)
@@ -497,69 +500,78 @@ def is_valid_geom(geom):
     bool: True if object is a valid GeoJSON geometry type
     """
 
-    geom_types = {'Point', 'MultiPoint', 'LineString', 'LinearRing',
-                  'MultiLineString', 'Polygon', 'MultiPolygon'}
+    geom_types = {
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "LinearRing",
+        "MultiLineString",
+        "Polygon",
+        "MultiPolygon",
+    }
 
-    geom = getattr(geom, '__geo_interface__', None) or geom
+    geom = getattr(geom, "__geo_interface__", None) or geom
 
     try:
         geom_type = geom["type"]
-        if geom_type not in geom_types.union({'GeometryCollection'}):
+        if geom_type not in geom_types.union({"GeometryCollection"}):
             return False
 
     except (KeyError, TypeError):
         return False
 
     if geom_type in geom_types:
-        if 'coordinates' not in geom:
+        if "coordinates" not in geom:
             return False
 
-        coords = geom['coordinates']
+        coords = geom["coordinates"]
 
-        if geom_type == 'Point':
+        if geom_type == "Point":
             # Points must have at least x, y
             return len(coords) >= 2
 
-        if geom_type == 'MultiPoint':
+        if geom_type == "MultiPoint":
             # Multi points must have at least one point with at least x, y
             return len(coords) > 0 and len(coords[0]) >= 2
 
-        if geom_type == 'LineString':
+        if geom_type == "LineString":
             # Lines must have at least 2 coordinates and at least x, y for
             # a coordinate
             return len(coords) >= 2 and len(coords[0]) >= 2
 
-        if geom_type == 'LinearRing':
+        if geom_type == "LinearRing":
             # Rings must have at least 4 coordinates and at least x, y for
             # a coordinate
             return len(coords) >= 4 and len(coords[0]) >= 2
 
-        if geom_type == 'MultiLineString':
+        if geom_type == "MultiLineString":
             # Multi lines must have at least one LineString
-            return (len(coords) > 0 and len(coords[0]) >= 2 and
-                    len(coords[0][0]) >= 2)
+            return len(coords) > 0 and len(coords[0]) >= 2 and len(coords[0][0]) >= 2
 
-        if geom_type == 'Polygon':
+        if geom_type == "Polygon":
             # Polygons must have at least 1 ring, with at least 4 coordinates,
             # with at least x, y for a coordinate
-            return (len(coords) > 0 and len(coords[0]) >= 4 and
-                    len(coords[0][0]) >= 2)
+            return len(coords) > 0 and len(coords[0]) >= 4 and len(coords[0][0]) >= 2
 
-        if geom_type == 'MultiPolygon':
+        if geom_type == "MultiPolygon":
             # Muti polygons must have at least one Polygon
-            return (len(coords) > 0 and len(coords[0]) > 0 and
-                    len(coords[0][0]) >= 4 and len(coords[0][0][0]) >= 2)
+            return (
+                len(coords) > 0
+                and len(coords[0]) > 0
+                and len(coords[0][0]) >= 4
+                and len(coords[0][0][0]) >= 2
+            )
 
-    if geom_type == 'GeometryCollection':
-        if 'geometries' not in geom:
+    if geom_type == "GeometryCollection":
+        if "geometries" not in geom:
             return False
 
-        if not len(geom['geometries']) > 0:
+        if not len(geom["geometries"]) > 0:
             # While technically valid according to GeoJSON spec, an empty
             # GeometryCollection will cause issues if used in rasterio
             return False
 
-        for g in geom['geometries']:
+        for g in geom["geometries"]:
             if not is_valid_geom(g):
                 return False  # short-circuit and fail early
 
@@ -567,14 +579,15 @@ def is_valid_geom(geom):
 
 
 def dataset_features(
-        src,
-        bidx=None,
-        sampling=1,
-        band=True,
-        as_mask=False,
-        with_nodata=False,
-        geographic=True,
-        precision=-1):
+    src,
+    bidx=None,
+    sampling=1,
+    band=True,
+    as_mask=False,
+    with_nodata=False,
+    geographic=True,
+    precision=-1,
+):
     """Yield GeoJSON features for the dataset
 
     The geometries are polygons bounding contiguous regions of the same raster value.
@@ -609,7 +622,7 @@ def dataset_features(
     GeoJSON-like Feature dictionaries for shapes found in the given band
     """
     if bidx is not None and bidx > src.count:
-        raise ValueError('bidx is out of range for raster')
+        raise ValueError("bidx is out of range for raster")
 
     img = None
     msk = None
@@ -618,8 +631,10 @@ def dataset_features(
     transform = src.transform
     if sampling > 1:
         # Determine the target shape (to decimate)
-        shape = (int(math.ceil(src.height / sampling)),
-                 int(math.ceil(src.width / sampling)))
+        shape = (
+            int(math.ceil(src.height / sampling)),
+            int(math.ceil(src.width / sampling)),
+        )
 
         # Calculate independent sampling factors
         x_sampling = src.width / shape[1]
@@ -627,8 +642,7 @@ def dataset_features(
 
         # Decimation of the raster produces a georeferencing
         # shift that we correct with a translation.
-        transform *= Affine.translation(
-            src.width % x_sampling, src.height % y_sampling)
+        transform *= Affine.translation(src.width % x_sampling, src.height % y_sampling)
 
         # And follow by scaling.
         transform *= Affine.scale(x_sampling, y_sampling)
@@ -642,14 +656,13 @@ def dataset_features(
         else:
             msk_shape = shape
             if bidx is None:
-                msk = np.zeros(
-                    (src.count,) + msk_shape, 'uint8')
+                msk = np.zeros((src.count,) + msk_shape, "uint8")
             else:
-                msk = np.zeros(msk_shape, 'uint8')
+                msk = np.zeros(msk_shape, "uint8")
             msk = src.read_masks(bidx, msk)
 
         if bidx is None:
-            msk = np.logical_or.reduce(msk).astype('uint8')
+            msk = np.logical_or.reduce(msk).astype("uint8")
 
         # Possibly overridden below.
         img = msk
@@ -659,9 +672,7 @@ def dataset_features(
         if sampling == 1:
             img = src.read(bidx, masked=False)
         else:
-            img = np.zeros(
-                shape,
-                dtype=src.dtypes[src.indexes.index(bidx)])
+            img = np.zeros(shape, dtype=src.dtypes[src.indexes.index(bidx)])
             img = src.read(bidx, img, masked=False)
 
     # If as_mask option was given, convert the image
@@ -669,34 +680,30 @@ def dataset_features(
     # categories to 2 and likely reduces the number of
     # shapes.
     if as_mask:
-        tmp = np.ones_like(img, 'uint8') * 255
+        tmp = np.ones_like(img, "uint8") * 255
         tmp[img == 0] = 0
         img = tmp
         if not with_nodata:
             msk = tmp
 
     # Prepare keyword arguments for shapes().
-    kwargs = {'transform': transform}
+    kwargs = {"transform": transform}
     if not with_nodata:
-        kwargs['mask'] = msk
+        kwargs["mask"] = msk
 
     src_basename = os.path.basename(src.name)
 
     # Yield GeoJSON features.
-    for i, (g, val) in enumerate(
-            rasterio.features.shapes(img, **kwargs)):
+    for i, (g, val) in enumerate(rasterio.features.shapes(img, **kwargs)):
         if geographic:
             g = warp.transform_geom(
-                src.crs, 'EPSG:4326', g,
-                antimeridian_cutting=True, precision=precision)
+                src.crs, "EPSG:4326", g, antimeridian_cutting=True, precision=precision
+            )
         xs, ys = zip(*coords(g))
         yield {
-            'type': 'Feature',
-            'id': "{0}:{1}".format(src_basename, i),
-            'properties': {
-                'val': val,
-                'filename': src_basename
-            },
-            'bbox': [min(xs), min(ys), max(xs), max(ys)],
-            'geometry': g
+            "type": "Feature",
+            "id": "{0}:{1}".format(src_basename, i),
+            "properties": {"val": val, "filename": src_basename},
+            "bbox": [min(xs), min(ys), max(xs), max(ys)],
+            "geometry": g,
         }

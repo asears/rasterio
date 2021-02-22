@@ -1,0 +1,3 @@
+[bandit]
+#exclude = /frontend,/scripts,/tests,/venv
+#tests: B101 (use S for bugbear conversion)

@@ -7,8 +7,8 @@ import rasterio
 
 
 @click.command(short_help="Sample a dataset.")
-@click.argument('files', nargs=-1, required=True, metavar='FILE "[x, y]"')
-@click.option('-b', '--bidx', default=None, help="Indexes of input file bands.")
+@click.argument("files", nargs=-1, required=True, metavar='FILE "[x, y]"')
+@click.option("-b", "--bidx", default=None, help="Indexes of input file bands.")
 @click.pass_context
 def sample(ctx, files, bidx):
     """Sample a dataset at one or more points
@@ -56,7 +56,7 @@ def sample(ctx, files, bidx):
 
     files = list(files)
     source_path = files.pop(0)
-    input = files.pop(0) if files else '-'
+    input = files.pop(0) if files else "-"
 
     # Handle the case of file, stream, or string input.
     try:
@@ -65,20 +65,20 @@ def sample(ctx, files, bidx):
         points = [input]
 
     try:
-        with ctx.obj['env']:
+        with ctx.obj["env"]:
             with rasterio.open(source_path) as src:
                 if bidx is None:
                     indexes = src.indexes
-                elif '..' in bidx:
-                    start, stop = map(
-                        lambda x: int(x) if x else None, bidx.split('..'))
+                elif ".." in bidx:
+                    start, stop = map(lambda x: int(x) if x else None, bidx.split(".."))
                     if start is None:
                         start = 1
                     indexes = src.indexes[slice(start - 1, stop)]
                 else:
-                    indexes = list(map(int, bidx.split(',')))
+                    indexes = list(map(int, bidx.split(",")))
                 for vals in src.sample(
-                        (json.loads(line) for line in points), indexes=indexes):
+                    (json.loads(line) for line in points), indexes=indexes
+                ):
                     click.echo(json.dumps(vals.tolist()))
 
     except Exception:

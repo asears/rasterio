@@ -26,9 +26,17 @@ DEFAULT_SHAPE = (10, 10)
 if sys.version_info > (3,):
     reduce = functools.reduce
 
-test_files = [os.path.join(os.path.dirname(__file__), p) for p in [
-    'data/RGB.byte.tif', 'data/float.tif', 'data/float32.tif',
-    'data/float_nan.tif', 'data/shade.tif', 'data/RGBA.byte.tif']]
+test_files = [
+    os.path.join(os.path.dirname(__file__), p)
+    for p in [
+        "data/RGB.byte.tif",
+        "data/float.tif",
+        "data/float32.tif",
+        "data/float_nan.tif",
+        "data/shade.tif",
+        "data/RGBA.byte.tif",
+    ]
+]
 
 
 def pytest_cmdline_main(config):
@@ -37,17 +45,18 @@ def pytest_cmdline_main(config):
     if reduce(operator.and_, map(os.path.exists, test_files)):
         print("Test data present.")
     else:
-        print("Test data not present. See download directions in "
-              "tests/data/README.rst")
+        print(
+            "Test data not present. See download directions in " "tests/data/README.rst"
+        )
         sys.exit(1)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def runner():
     return CliRunner()
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def data(tmpdir):
     """A temporary directory containing a copy of the files in data."""
     for filename in test_files:
@@ -55,10 +64,15 @@ def data(tmpdir):
     return tmpdir
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def red_green(tmpdir):
     """A temporary directory containing copies of red.tif, green.tif."""
-    for filename in ['tests/data/red.tif', 'tests/data/red.tif.ovr', 'tests/data/green.tif', 'tests/data/green.tif.ovr']:
+    for filename in [
+        "tests/data/red.tif",
+        "tests/data/red.tif.ovr",
+        "tests/data/green.tif",
+        "tests/data/green.tif.ovr",
+    ]:
         shutil.copy(filename, str(tmpdir))
     return tmpdir
 
@@ -74,8 +88,8 @@ def basic_geometry():
     """
 
     return {
-        'type': 'Polygon',
-        'coordinates': [[(2, 2), (2, 4.25), (4.25, 4.25), (4.25, 2), (2, 2)]]
+        "type": "Polygon",
+        "coordinates": [[(2, 2), (2, 4.25), (4.25, 4.25), (4.25, 2), (2, 2)]],
     }
 
 
@@ -90,10 +104,16 @@ def rotation_geometry():
     """
 
     return {
-        'type': 'Polygon',
-        'coordinates': [[(481070, 4481140), (481040, 4481160),
-                         (481035, 4481130), (481060, 4481125),
-                         (481070, 4481140)]]
+        "type": "Polygon",
+        "coordinates": [
+            [
+                (481070, 4481140),
+                (481040, 4481160),
+                (481035, 4481130),
+                (481060, 4481125),
+                (481070, 4481140),
+            ]
+        ],
     }
 
 
@@ -107,10 +127,7 @@ def geojson_point():
         Coordinates are in grid coordinates (Affine.identity()).
     """
 
-    return {
-        'type': 'Point',
-        'coordinates': (2, 2)
-    }
+    return {"type": "Point", "coordinates": (2, 2)}
 
 
 @pytest.fixture
@@ -123,10 +140,7 @@ def geojson_multipoint():
         Coordinates are in grid coordinates (Affine.identity()).
     """
 
-    return {
-        'type': 'MultiPoint',
-        'coordinates': ((2, 2), (4, 4))
-    }
+    return {"type": "MultiPoint", "coordinates": ((2, 2), (4, 4))}
 
 
 @pytest.fixture
@@ -139,10 +153,7 @@ def geojson_line():
         Coordinates are in grid coordinates (Affine.identity()).
     """
 
-    return {
-        'type': 'LineString',
-        'coordinates': ((2, 2), (4, 4))
-    }
+    return {"type": "LineString", "coordinates": ((2, 2), (4, 4))}
 
 
 @pytest.fixture
@@ -156,8 +167,8 @@ def geojson_multiline():
     """
 
     return {
-        'type': 'MultiLineString',
-        'coordinates': (((2, 2), (4, 4)), ((0, 0), (4, 0)))
+        "type": "MultiLineString",
+        "coordinates": (((2, 2), (4, 4)), ((0, 0), (4, 0))),
     }
 
 
@@ -185,11 +196,11 @@ def geojson_multipolygon():
     """
 
     return {
-        'type': 'MultiPolygon',
-        'coordinates': (
-            (((2, 2), (2, 4), (4, 4), (4, 2), (2, 2)), ),
-            (((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), )
-        )
+        "type": "MultiPolygon",
+        "coordinates": (
+            (((2, 2), (2, 4), (4, 4), (4, 2), (2, 2)),),
+            (((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)),),
+        ),
     }
 
 
@@ -204,17 +215,17 @@ def geojson_geomcollection():
     """
 
     return {
-        'type': 'GeometryCollection',
-        'geometries': (
+        "type": "GeometryCollection",
+        "geometries": (
             {
-                'type': 'Polygon',
-                'coordinates': (((2, 2), (2, 4), (4, 4), (4, 2), (2, 2)), )
+                "type": "Polygon",
+                "coordinates": (((2, 2), (2, 4), (4, 4), (4, 2), (2, 2)),),
             },
             {
-                'type': 'Polygon',
-                'coordinates': (((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)), )
-            }
-        )
+                "type": "Polygon",
+                "coordinates": (((0, 0), (0, 1), (1, 1), (1, 0), (0, 0)),),
+            },
+        ),
     }
 
 
@@ -228,13 +239,7 @@ def basic_feature(basic_geometry):
         Coordinates are in grid coordinates (Affine.identity()).
     """
 
-    return {
-        'geometry': basic_geometry,
-        'properties': {
-            'val': 15
-        },
-        'type': 'Feature'
-    }
+    return {"geometry": basic_geometry, "properties": {"val": 15}, "type": "Feature"}
 
 
 @pytest.fixture
@@ -247,10 +252,7 @@ def basic_featurecollection(basic_feature):
         Coordinates are in grid coordinates (Affine.identity()).
     """
 
-    return {
-        'features': [basic_feature],
-        'type': 'FeatureCollection'
-    }
+    return {"features": [basic_feature], "type": "FeatureCollection"}
 
 
 @pytest.fixture
@@ -364,18 +366,18 @@ def basic_image_file(tmpdir, basic_image):
 
     image = basic_image
 
-    outfilename = str(tmpdir.join('basic_image.tif'))
+    outfilename = str(tmpdir.join("basic_image.tif"))
     kwargs = {
-        "crs": CRS({'init': 'epsg:4326'}),
+        "crs": CRS({"init": "epsg:4326"}),
         "transform": Affine.identity(),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": image.shape[1],
         "height": image.shape[0],
-        "nodata": None
+        "nodata": None,
     }
-    with rasterio.open(outfilename, 'w', **kwargs) as out:
+    with rasterio.open(outfilename, "w", **kwargs) as out:
         out.write(image, indexes=1)
 
     return outfilename
@@ -399,18 +401,18 @@ def pixelated_image_file(tmpdir, pixelated_image):
 
     image = pixelated_image
 
-    outfilename = str(tmpdir.join('pixelated_image.tif'))
+    outfilename = str(tmpdir.join("pixelated_image.tif"))
     kwargs = {
-        "crs": CRS({'init': 'epsg:4326'}),
+        "crs": CRS({"init": "epsg:4326"}),
         "transform": Affine.identity(),
         "count": 1,
         "dtype": rasterio.uint8,
         "driver": "GTiff",
         "width": image.shape[1],
         "height": image.shape[0],
-        "nodata": 255
+        "nodata": 255,
     }
-    with rasterio.open(outfilename, 'w', **kwargs) as out:
+    with rasterio.open(outfilename, "w", **kwargs) as out:
         out.write(image, indexes=1)
 
     return outfilename
@@ -434,12 +436,11 @@ def rotated_image_file(tmpdir, pixelated_image):
 
     image = 128 * np.ones((1000, 2000), dtype=np.uint8)
 
-    rotated_transform = Affine(-0.05, 0.07, 481060,
-                               0.07, 0.05, 4481030)
+    rotated_transform = Affine(-0.05, 0.07, 481060, 0.07, 0.05, 4481030)
 
-    outfilename = str(tmpdir.join('rotated_image.tif'))
+    outfilename = str(tmpdir.join("rotated_image.tif"))
     kwargs = {
-        "crs": CRS({'init': 'epsg:32613'}),
+        "crs": CRS({"init": "epsg:32613"}),
         "transform": rotated_transform,
         "count": 1,
         "dtype": rasterio.uint8,
@@ -447,15 +448,15 @@ def rotated_image_file(tmpdir, pixelated_image):
         "width": image.shape[1],
         "height": image.shape[0],
         "nodata": 255,
-        "compress": "lzw"
+        "compress": "lzw",
     }
-    with rasterio.open(outfilename, 'w', **kwargs) as out:
+    with rasterio.open(outfilename, "w", **kwargs) as out:
         out.write(image, indexes=1)
 
     return outfilename
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def gdalenv(request):
     import rasterio.env
 
@@ -467,36 +468,36 @@ def gdalenv(request):
     request.addfinalizer(fin)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def data_dir():
     """Absolute file path to the directory containing test datasets."""
-    return os.path.abspath(os.path.join('tests', 'data'))
+    return os.path.abspath(os.path.join("tests", "data"))
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_rgb_byte_tif(data_dir):
     """The original RGB test fixture with no sidecar files"""
-    return os.path.join(data_dir, 'RGB.byte.tif')
+    return os.path.join(data_dir, "RGB.byte.tif")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_rgba_byte_tif(data_dir):
     """Derived from RGB.byte.tif, this has an alpha band"""
-    return os.path.join(data_dir, 'RGBA.byte.tif')
+    return os.path.join(data_dir, "RGBA.byte.tif")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_rgb_msk_byte_tif(data_dir):
     """Derived from RGB.byte.tif, this has an external mask"""
-    return os.path.join(data_dir, 'RGB2.byte.tif')
+    return os.path.join(data_dir, "RGB2.byte.tif")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_cogeo_tif(data_dir):
-    return os.path.join(data_dir, 'cogeo.tif')
+    return os.path.join(data_dir, "cogeo.tif")
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def _path_multiband_no_colorinterp(tmpdir):
 
     """Produces a function for generating an image with ``count`` bands
@@ -514,20 +515,19 @@ def _path_multiband_no_colorinterp(tmpdir):
         undefined_ci = [ColorInterp.gray]
         if count > 1:
             undefined_ci += [ColorInterp.undefined] * (count - 1)
-        dst_path = str(tmpdir.join('4band-byte-no-ci.tif'))
+        dst_path = str(tmpdir.join("4band-byte-no-ci.tif"))
         profile = {
-            'height': 10,
-            'width': 10,
-            'count': count,
-            'dtype': rasterio.ubyte,
-            'transform': affine.Affine(1, 0.0, 0,
-                                       0.0, -1, 1),
-            'driver': 'GTiff',
-            'photometric': 'minisblack'
+            "height": 10,
+            "width": 10,
+            "count": count,
+            "dtype": rasterio.ubyte,
+            "transform": affine.Affine(1, 0.0, 0, 0.0, -1, 1),
+            "driver": "GTiff",
+            "photometric": "minisblack",
         }
 
         undefined_ci = tuple(undefined_ci)
-        with rasterio.open(dst_path, 'w', **profile) as src:
+        with rasterio.open(dst_path, "w", **profile) as src:
             src.colorinterp = undefined_ci
 
         # Ensure override occurred.  Setting color interpretation on an
@@ -537,44 +537,44 @@ def _path_multiband_no_colorinterp(tmpdir):
             if src.colorinterp != undefined_ci:
                 raise ValueError(
                     "Didn't properly set color interpretation.  GDAL can "
-                    "forcefully make assumptions.")
+                    "forcefully make assumptions."
+                )
 
         return dst_path
 
     return _create_path_multiband_no_colorinterp
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def path_3band_no_colorinterp(_path_multiband_no_colorinterp):
     """A 3 band image with undefined color interpretation."""
     return _path_multiband_no_colorinterp(3)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def path_4band_no_colorinterp(_path_multiband_no_colorinterp):
     """A 4 band image with undefined color interpretation."""
     return _path_multiband_no_colorinterp(4)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_float_tif(data_dir):
-    return os.path.join(data_dir, 'float.tif')
+    return os.path.join(data_dir, "float.tif")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_alpha_tif(data_dir):
-    return os.path.join(data_dir, 'alpha.tif')
+    return os.path.join(data_dir, "alpha.tif")
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def path_zip_file(data_dir):
     """Creates ``coutwildrnp.zip`` if it does not exist and returns
     the absolute file path."""
-    path = '{}/white-gemini-iv.zip'.format(data_dir)
+    path = "{}/white-gemini-iv.zip".format(data_dir)
     if not os.path.exists(path):
-        with zipfile.ZipFile(path, 'w') as zip:
-            for filename in ['white-gemini-iv.vrt',
-                             '389225main_sw_1965_1024.jpg']:
+        with zipfile.ZipFile(path, "w") as zip:
+            for filename in ["white-gemini-iv.vrt", "389225main_sw_1965_1024.jpg"]:
                 zip.write(os.path.join(data_dir, filename), filename)
     return path
 
@@ -583,11 +583,13 @@ def path_zip_file(data_dir):
 def set_mem_name(request, monkeypatch):
     def youyoueyedeefour():
         return "{}-{}".format(request.node.name, uuid.uuid4())
+
     monkeypatch.setattr(rasterio._io, "uuid4", youyoueyedeefour)
 
 
 class MockGeoInterface(object):
     """Tiny wrapper for GeoJSON to present an object with __geo_interface__ for testing"""
+
     def __init__(self, geojson):
         self.__geo_interface__ = geojson
 
@@ -596,33 +598,33 @@ class MockGeoInterface(object):
 gdal_version = GDALVersion.runtime()
 
 requires_only_gdal1 = pytest.mark.skipif(
-    gdal_version.major != 1,
-    reason="Only relevant for GDAL 1.x")
+    gdal_version.major != 1, reason="Only relevant for GDAL 1.x"
+)
 
 requires_gdal2 = pytest.mark.skipif(
-    not gdal_version.major >= 2,
-    reason="Requires GDAL 2.x")
+    not gdal_version.major >= 2, reason="Requires GDAL 2.x"
+)
 
 requires_gdal21 = pytest.mark.skipif(
-    not gdal_version.at_least('2.1'),
-    reason="Requires GDAL 2.1.x")
+    not gdal_version.at_least("2.1"), reason="Requires GDAL 2.1.x"
+)
 
 requires_gdal22 = pytest.mark.skipif(
-    not gdal_version.at_least('2.2'),
-    reason="Requires GDAL 2.2.x")
+    not gdal_version.at_least("2.2"), reason="Requires GDAL 2.2.x"
+)
 
 requires_gdal23 = pytest.mark.skipif(
-    not gdal_version.at_least('2.3'),
-    reason="Requires GDAL ~= 2.3")
+    not gdal_version.at_least("2.3"), reason="Requires GDAL ~= 2.3"
+)
 
 requires_gdal_lt_3 = pytest.mark.skipif(
-    gdal_version.__lt__('3.0'),
-    reason="Requires GDAL 1.x/2.x")
+    gdal_version.__lt__("3.0"), reason="Requires GDAL 1.x/2.x"
+)
 
 requires_gdal3 = pytest.mark.skipif(
-    not gdal_version.at_least('3.0'),
-    reason="Requires GDAL 3.0.x")
+    not gdal_version.at_least("3.0"), reason="Requires GDAL 3.0.x"
+)
 
 requires_gdal33 = pytest.mark.skipif(
-    not gdal_version.at_least('3.3'),
-    reason="Requires GDAL 3.3.x")
+    not gdal_version.at_least("3.3"), reason="Requires GDAL 3.3.x"
+)

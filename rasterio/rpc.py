@@ -2,11 +2,12 @@ import attr
 from collections import OrderedDict
 from collections.abc import Iterable
 
+
 @attr.s(slots=True)
 class RPC(object):
     """Rational Polynomial Coefficients used to map (x, y, z) <-> (row, col) coordinates.
-    
-    This class contains a mapping between various RPC attributes and values. 
+
+    This class contains a mapping between various RPC attributes and values.
 
     Attributes
     ----------
@@ -47,7 +48,7 @@ class RPC(object):
 
     def to_gdal(self):
         """Serialize RPC attribute name and values in a form expected by GDAL.
-        
+
         Returns
         -------
         dict
@@ -71,14 +72,14 @@ class RPC(object):
             "SAMP_DEN_COEFF": " ".join(map(str, self.samp_den_coeff)),
             "SAMP_NUM_COEFF": " ".join(map(str, self.samp_num_coeff)),
             "SAMP_OFF": str(self.samp_off),
-            "SAMP_SCALE": str(self.samp_scale)
+            "SAMP_SCALE": str(self.samp_scale),
         }
-        
+
         if self.err_bias:
             out.update(ERR_BIAS=str(self.err_bias))
         if self.err_rand:
             out.update(ERR_RAND=str(self.err_rand))
-        
+
         return out
 
     @classmethod

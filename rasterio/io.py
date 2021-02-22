@@ -5,11 +5,13 @@ Instances of these classes are called dataset objects.
 
 import logging
 
-from rasterio._base import (
-    get_dataset_driver, driver_can_create, driver_can_create_copy)
+from rasterio._base import get_dataset_driver, driver_can_create, driver_can_create_copy
 from rasterio._io import (
-    DatasetReaderBase, DatasetWriterBase, BufferedDatasetWriterBase,
-    MemoryFileBase)
+    DatasetReaderBase,
+    DatasetWriterBase,
+    BufferedDatasetWriterBase,
+    MemoryFileBase,
+)
 from rasterio.windows import WindowMethodsMixin
 from rasterio.env import ensure_env, env_ctx_if_needed
 from rasterio.transform import TransformMethodsMixin
@@ -19,28 +21,29 @@ from rasterio.path import UnparsedPath
 log = logging.getLogger(__name__)
 
 
-class DatasetReader(DatasetReaderBase, WindowMethodsMixin,
-                    TransformMethodsMixin):
+class DatasetReader(DatasetReaderBase, WindowMethodsMixin, TransformMethodsMixin):
     """An unbuffered data and metadata reader"""
 
     def __repr__(self):
         return "<{} DatasetReader name='{}' mode='{}'>".format(
-            self.closed and 'closed' or 'open', self.name, self.mode)
+            self.closed and "closed" or "open", self.name, self.mode
+        )
 
 
-class DatasetWriter(DatasetWriterBase, WindowMethodsMixin,
-                    TransformMethodsMixin):
+class DatasetWriter(DatasetWriterBase, WindowMethodsMixin, TransformMethodsMixin):
     """An unbuffered data and metadata writer. Its methods write data
     directly to disk.
     """
 
     def __repr__(self):
         return "<{} DatasetWriter name='{}' mode='{}'>".format(
-            self.closed and 'closed' or 'open', self.name, self.mode)
+            self.closed and "closed" or "open", self.name, self.mode
+        )
 
 
-class BufferedDatasetWriter(BufferedDatasetWriterBase, WindowMethodsMixin,
-                            TransformMethodsMixin):
+class BufferedDatasetWriter(
+    BufferedDatasetWriterBase, WindowMethodsMixin, TransformMethodsMixin
+):
     """Maintains data and metadata in a buffer, writing to disk or
     network only when `close()` is called.
 
@@ -50,7 +53,8 @@ class BufferedDatasetWriter(BufferedDatasetWriterBase, WindowMethodsMixin,
 
     def __repr__(self):
         return "<{} BufferedDatasetWriter name='{}' mode='{}'>".format(
-            self.closed and 'closed' or 'open', self.name, self.mode)
+            self.closed and "closed" or "open", self.name, self.mode
+        )
 
 
 class MemoryFile(MemoryFileBase):
@@ -85,7 +89,8 @@ class MemoryFile(MemoryFileBase):
      'width': 791}
 
     """
-    def __init__(self, file_or_bytes=None, dirname=None, filename=None, ext='.tif'):
+
+    def __init__(self, file_or_bytes=None, dirname=None, filename=None, ext=".tif"):
         """Create a new file in memory
 
         Parameters
@@ -102,11 +107,23 @@ class MemoryFile(MemoryFileBase):
         MemoryFile
         """
         super(MemoryFile, self).__init__(
-            file_or_bytes=file_or_bytes, dirname=dirname, filename=filename, ext=ext)
+            file_or_bytes=file_or_bytes, dirname=dirname, filename=filename, ext=ext
+        )
 
     @ensure_env
-    def open(self, driver=None, width=None, height=None, count=None, crs=None,
-             transform=None, dtype=None, nodata=None, sharing=False, **kwargs):
+    def open(
+        self,
+        driver=None,
+        width=None,
+        height=None,
+        count=None,
+        crs=None,
+        transform=None,
+        dtype=None,
+        nodata=None,
+        sharing=False,
+        **kwargs
+    ):
         """Open the file and return a Rasterio dataset object.
 
         If data has already been written, the file is opened in 'r'
@@ -130,10 +147,20 @@ class MemoryFile(MemoryFileBase):
             return DatasetReader(mempath, driver=driver, sharing=sharing, **kwargs)
         else:
             writer = get_writer_for_driver(driver)
-            return writer(mempath, 'w+', driver=driver, width=width,
-                          height=height, count=count, crs=crs,
-                          transform=transform, dtype=dtype,
-                          nodata=nodata, sharing=sharing, **kwargs)
+            return writer(
+                mempath,
+                "w+",
+                driver=driver,
+                width=width,
+                height=height,
+                count=count,
+                crs=crs,
+                transform=transform,
+                dtype=dtype,
+                nodata=nodata,
+                sharing=sharing,
+                **kwargs
+            )
 
     def __enter__(self):
         self._env = env_ctx_if_needed()
@@ -153,7 +180,7 @@ class ZipMemoryFile(MemoryFile):
     """
 
     def __init__(self, file_or_bytes=None):
-        super(ZipMemoryFile, self).__init__(file_or_bytes, ext='zip')
+        super(ZipMemoryFile, self).__init__(file_or_bytes, ext="zip")
 
     @ensure_env
     def open(self, path, driver=None, sharing=False, **kwargs):
@@ -172,7 +199,7 @@ class ZipMemoryFile(MemoryFile):
         -------
         A Rasterio dataset object
         """
-        zippath = UnparsedPath('/vsizip{0}/{1}'.format(self.name, path.lstrip('/')))
+        zippath = UnparsedPath("/vsizip{0}/{1}".format(self.name, path.lstrip("/")))
 
         if self.closed:
             raise IOError("I/O operation on closed file.")

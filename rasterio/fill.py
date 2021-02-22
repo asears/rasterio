@@ -9,11 +9,7 @@ from numpy.ma import MaskedArray
 
 
 @ensure_env
-def fillnodata(
-        image,
-        mask=None,
-        max_search_distance=100.0,
-        smoothing_iterations=0):
+def fillnodata(image, mask=None, max_search_distance=100.0, smoothing_iterations=0):
     """Fill holes in raster data by interpolation
 
     This algorithm will interpolate values for all designated nodata
@@ -67,5 +63,4 @@ def fillnodata(
 
     max_search_distance = float(max_search_distance)
     smoothing_iterations = int(smoothing_iterations)
-    return _fillnodata(
-        image, mask, max_search_distance, smoothing_iterations)
+    return _fillnodata(image, mask, max_search_distance, smoothing_iterations)

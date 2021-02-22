@@ -14,7 +14,12 @@ from collections.abc import Mapping
 import json
 import pickle
 
-from rasterio._crs import _CRS, all_proj_keys, _epsg_treats_as_latlong, _epsg_treats_as_northingeasting
+from rasterio._crs import (
+    _CRS,
+    all_proj_keys,
+    _epsg_treats_as_latlong,
+    _epsg_treats_as_northingeasting,
+)
 from rasterio.errors import CRSError
 
 
@@ -42,6 +47,7 @@ class CRS(Mapping):
     >>> crs = CRS.from_string('EPSG:3005')
 
     """
+
     def __init__(self, initialdata=None, **kwargs):
         """Make a CRS from a PROJ dict or mapping
 
@@ -89,7 +95,7 @@ class CRS(Mapping):
             other = CRS.from_user_input(other)
         except CRSError:
             return False
-        return (self._crs == other._crs)
+        return self._crs == other._crs
 
     def __getstate__(self):
         return self.to_wkt()
@@ -113,7 +119,7 @@ class CRS(Mapping):
         str
 
         """
-        return ' '.join(['+{}={}'.format(key, val) for key, val in self.data.items()])
+        return " ".join(["+{}={}".format(key, val) for key, val in self.data.items()])
 
     def to_wkt(self, morph_to_esri_dialect=False):
         """Convert CRS to its OGC WKT representation
@@ -185,7 +191,7 @@ class CRS(Mapping):
         else:
             epsg_code = self.to_epsg()
             if epsg_code:
-                return {'init': 'epsg:{}'.format(epsg_code)}
+                return {"init": "epsg:{}".format(epsg_code)}
             else:
                 try:
                     return self._crs.to_dict()
@@ -350,7 +356,9 @@ class CRS(Mapping):
         -------
         CRS
         """
-        return cls.from_string("{auth_name}:{code}".format(auth_name=auth_name, code=code))
+        return cls.from_string(
+            "{auth_name}:{code}".format(auth_name=auth_name, code=code)
+        )
 
     @classmethod
     def from_string(cls, string, morph_from_esri_dialect=False):
@@ -377,18 +385,18 @@ class CRS(Mapping):
         if not string:
             raise CRSError("CRS is empty or invalid: {!r}".format(string))
 
-        elif string.upper().startswith('EPSG:'):
-            auth, val = string.split(':')
+        elif string.upper().startswith("EPSG:"):
+            auth, val = string.split(":")
             if not val:
                 raise CRSError("Invalid CRS: {!r}".format(string))
             return cls.from_epsg(val)
 
-        elif string.startswith('{') or string.startswith('['):
+        elif string.startswith("{") or string.startswith("["):
             # may be json, try to decode it
             try:
                 val = json.loads(string, strict=False)
             except ValueError:
-                raise CRSError('CRS appears to be JSON but is not valid')
+                raise CRSError("CRS appears to be JSON but is not valid")
 
             if not val:
                 raise CRSError("CRS is empty JSON")
@@ -400,7 +408,9 @@ class CRS(Mapping):
             return cls.from_proj4(string)
 
         obj = cls()
-        obj._crs = _CRS.from_user_input(string, morph_from_esri_dialect=morph_from_esri_dialect)
+        obj._crs = _CRS.from_user_input(
+            string, morph_from_esri_dialect=morph_from_esri_dialect
+        )
         return obj
 
     @classmethod
@@ -493,7 +503,9 @@ class CRS(Mapping):
         elif isinstance(value, dict):
             return cls(**value)
         elif isinstance(value, str):
-            return cls.from_string(value, morph_from_esri_dialect=morph_from_esri_dialect)
+            return cls.from_string(
+                value, morph_from_esri_dialect=morph_from_esri_dialect
+            )
         else:
             raise CRSError("CRS is invalid: {!r}".format(value))
 
@@ -555,7 +567,7 @@ def epsg_treats_as_northingeasting(input):
     > Important change of behavior since GDAL 3.0.
     In previous versions, projected CRS with northing, easting axis order
     imported with importFromEPSG() would cause this method to return FALSE
-    on them, whereas now it returns TRUE, since importFromEPSG() is now 
+    on them, whereas now it returns TRUE, since importFromEPSG() is now
     equivalent to importFromEPSGA().
 
     Parameters

@@ -78,7 +78,8 @@ class TransformMethodsMixin(object):
 def tastes_like_gdal(seq):
     """Return True if `seq` matches the GDAL geotransform pattern."""
     return tuple(seq) == GDAL_IDENTITY or (
-        seq[2] == seq[4] == 0.0 and seq[1] > 0 and seq[5] < 0)
+        seq[2] == seq[4] == 0.0 and seq[1] > 0 and seq[5] < 0
+    )
 
 
 def guard_transform(transform):
@@ -88,7 +89,8 @@ def guard_transform(transform):
             raise TypeError(
                 "GDAL-style transforms have been deprecated.  This "
                 "exception will be raised for a period of time to highlight "
-                "potentially confusing errors, but will eventually be removed.")
+                "potentially confusing errors, but will eventually be removed."
+            )
         else:
             transform = Affine(*transform)
     return transform
@@ -112,7 +114,8 @@ def from_bounds(west, south, east, north, width, height):
     `height` in number of pixels.
     """
     return Affine.translation(west, north) * Affine.scale(
-        (east - west) / width, (south - north) / height)
+        (east - west) / width, (south - north) / height
+    )
 
 
 def array_bounds(height, width, transform):
@@ -126,7 +129,7 @@ def array_bounds(height, width, transform):
     return w, s, e, n
 
 
-def xy(transform, rows, cols, offset='center'):
+def xy(transform, rows, cols, offset="center"):
     """Returns the x and y coordinates of pixels at `rows` and `cols`.
     The pixel's center is returned by default, but a corner can be returned
     by setting `offset` to one of `ul, ur, ll, lr`.
@@ -160,15 +163,15 @@ def xy(transform, rows, cols, offset='center'):
         rows = [rows]
         single_row = True
 
-    if offset == 'center':
+    if offset == "center":
         coff, roff = (0.5, 0.5)
-    elif offset == 'ul':
+    elif offset == "ul":
         coff, roff = (0, 0)
-    elif offset == 'ur':
+    elif offset == "ur":
         coff, roff = (1, 0)
-    elif offset == 'll':
+    elif offset == "ll":
         coff, roff = (0, 1)
-    elif offset == 'lr':
+    elif offset == "lr":
         coff, roff = (1, 1)
     else:
         raise ValueError("Invalid offset")

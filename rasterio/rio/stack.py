@@ -20,8 +20,7 @@ from rasterio.rio.helpers import resolve_inout
 @options.overwrite_opt
 @options.creation_options
 @click.pass_context
-def stack(ctx, files, output, driver, bidx, photometric, overwrite,
-          creation_options):
+def stack(ctx, files, output, driver, bidx, photometric, overwrite, creation_options):
     """Stack a number of bands from one or more input files into a
     multiband dataset.
 
@@ -55,9 +54,10 @@ def stack(ctx, files, output, driver, bidx, photometric, overwrite,
     """
     logger = logging.getLogger(__name__)
     try:
-        with ctx.obj['env']:
-            output, files = resolve_inout(files=files, output=output,
-                                          overwrite=overwrite)
+        with ctx.obj["env"]:
+            output, files = resolve_inout(
+                files=files, output=output, overwrite=overwrite
+            )
             output_count = 0
             indexes = []
             for path, item in zip_longest(files, bidx, fillvalue=None):
@@ -66,15 +66,14 @@ def stack(ctx, files, output, driver, bidx, photometric, overwrite,
                 if item is None:
                     indexes.append(src_indexes)
                     output_count += len(src_indexes)
-                elif '..' in item:
-                    start, stop = map(
-                        lambda x: int(x) if x else None, item.split('..'))
+                elif ".." in item:
+                    start, stop = map(lambda x: int(x) if x else None, item.split(".."))
                     if start is None:
                         start = 1
                     indexes.append(src_indexes[slice(start - 1, stop)])
                     output_count += len(src_indexes[slice(start - 1, stop)])
                 else:
-                    parts = list(map(int, item.split(',')))
+                    parts = list(map(int, item.split(",")))
                     if len(parts) == 1:
                         indexes.append(parts[0])
                         output_count += 1
@@ -93,9 +92,9 @@ def stack(ctx, files, output, driver, bidx, photometric, overwrite,
             kwargs.update(count=output_count)
 
             if photometric:
-                kwargs['photometric'] = photometric
+                kwargs["photometric"] = photometric
 
-            with rasterio.open(output, 'w', **kwargs) as dst:
+            with rasterio.open(output, "w", **kwargs) as dst:
                 dst_idx = 1
                 for path, index in zip(files, indexes):
                     with rasterio.open(path) as src:

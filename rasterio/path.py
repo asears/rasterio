@@ -12,23 +12,36 @@ from rasterio.errors import PathError
 # Supported URI schemes and their mapping to GDAL's VSI suffix.
 # TODO: extend for other cloud plaforms.
 SCHEMES = {
-    'ftp': 'curl',
-    'gzip': 'gzip',
-    'http': 'curl',
-    'https': 'curl',
-    's3': 's3',
-    'tar': 'tar',
-    'zip': 'zip',
-    'file': 'file',
-    'oss': 'oss',
-    'gs': 'gs',
-    'az': 'az',
+    "ftp": "curl",
+    "gzip": "gzip",
+    "http": "curl",
+    "https": "curl",
+    "s3": "s3",
+    "tar": "tar",
+    "zip": "zip",
+    "file": "file",
+    "oss": "oss",
+    "gs": "gs",
+    "az": "az",
 }
 
-CURLSCHEMES = set([k for k, v in SCHEMES.items() if v == 'curl'])
+CURLSCHEMES = set([k for k, v in SCHEMES.items() if v == "curl"])
 
 # TODO: extend for other cloud plaforms.
-REMOTESCHEMES = set([k for k, v in SCHEMES.items() if v in ('curl', 's3', 'oss', 'gs', 'az',)])
+REMOTESCHEMES = set(
+    [
+        k
+        for k, v in SCHEMES.items()
+        if v
+        in (
+            "curl",
+            "s3",
+            "oss",
+            "gs",
+            "az",
+        )
+    ]
+)
 
 
 class Path(object):
@@ -52,6 +65,7 @@ class ParsedPath(Path):
     scheme : str
         URI scheme such as "https" or "zip+s3".
     """
+
     path = attr.ib()
     archive = attr.ib()
     scheme = attr.ib()
@@ -68,7 +82,7 @@ class ParsedPath(Path):
         if parts.scheme and parts.netloc:
             path = parts.netloc + path
 
-        parts = path.split('!')
+        parts = path.split("!")
         path = parts.pop() if parts else None
         archive = parts.pop() if parts else None
         return ParsedPath(path, archive, scheme)
@@ -91,7 +105,9 @@ class ParsedPath(Path):
     @property
     def is_local(self):
         """Test if the path is a local URI"""
-        return not self.scheme or (self.scheme and self.scheme.split('+')[-1] not in REMOTESCHEMES)
+        return not self.scheme or (
+            self.scheme and self.scheme.split("+")[-1] not in REMOTESCHEMES
+        )
 
 
 @attr.s(slots=True)
@@ -103,6 +119,7 @@ class UnparsedPath(Path):
     path : str
         The legacy GDAL filename.
     """
+
     path = attr.ib()
 
     @property
@@ -143,7 +160,7 @@ def parse_path(path):
             else:
                 return UnparsedPath(path)
 
-        elif path.startswith('/vsi'):
+        elif path.startswith("/vsi"):
             return UnparsedPath(path)
 
         else:
@@ -156,7 +173,7 @@ def parse_path(path):
     # return an UnparsedPath.
     if parts.scheme:
 
-        if all(p in SCHEMES for p in parts.scheme.split('+')):
+        if all(p in SCHEMES for p in parts.scheme.split("+")):
             return ParsedPath.from_uri(path)
 
     return UnparsedPath(path)
@@ -184,18 +201,24 @@ def vsi_path(path):
             return path.path
 
         else:
-            if path.scheme.split('+')[-1] in CURLSCHEMES:
-                suffix = '{}://'.format(path.scheme.split('+')[-1])
+            if path.scheme.split("+")[-1] in CURLSCHEMES:
+                suffix = "{}://".format(path.scheme.split("+")[-1])
             else:
-                suffix = ''
+                suffix = ""
 
-            prefix = '/'.join('vsi{0}'.format(SCHEMES[p]) for p in path.scheme.split('+') if p != 'file')
+            prefix = "/".join(
+                "vsi{0}".format(SCHEMES[p])
+                for p in path.scheme.split("+")
+                if p != "file"
+            )
 
             if prefix:
                 if path.archive:
-                    result = '/{}/{}{}/{}'.format(prefix, suffix, path.archive, path.path.lstrip('/'))
+                    result = "/{}/{}{}/{}".format(
+                        prefix, suffix, path.archive, path.path.lstrip("/")
+                    )
                 else:
-                    result = '/{}/{}{}'.format(prefix, suffix, path.path)
+                    result = "/{}/{}{}".format(prefix, suffix, path.path)
             else:
                 result = path.path
             return result

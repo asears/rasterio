@@ -28,22 +28,53 @@ logger = logging.getLogger(__name__)
 @cligj.use_rs_opt
 @cligj.geojson_type_feature_opt(True)
 @cligj.geojson_type_bbox_opt(False)
-@click.option('--band/--mask', default=True,
-              help="Choose to extract from a band (the default) or a mask.")
-@click.option('--bidx', 'bandidx', type=int, default=None,
-              help="Index of the band or mask that is the source of shapes.")
-@click.option('--sampling', type=int, default=1,
-              help="Inverse of the sampling fraction; "
-                   "a value of 10 decimates.")
-@click.option('--with-nodata/--without-nodata', default=False,
-              help="Include or do not include (the default) nodata regions.")
-@click.option('--as-mask/--not-as-mask', default=False,
-              help="Interpret a band as a mask and output only one class of "
-                   "valid data shapes.")
+@click.option(
+    "--band/--mask",
+    default=True,
+    help="Choose to extract from a band (the default) or a mask.",
+)
+@click.option(
+    "--bidx",
+    "bandidx",
+    type=int,
+    default=None,
+    help="Index of the band or mask that is the source of shapes.",
+)
+@click.option(
+    "--sampling",
+    type=int,
+    default=1,
+    help="Inverse of the sampling fraction; " "a value of 10 decimates.",
+)
+@click.option(
+    "--with-nodata/--without-nodata",
+    default=False,
+    help="Include or do not include (the default) nodata regions.",
+)
+@click.option(
+    "--as-mask/--not-as-mask",
+    default=False,
+    help="Interpret a band as a mask and output only one class of "
+    "valid data shapes.",
+)
 @click.pass_context
 def shapes(
-        ctx, input, output, precision, indent, compact, projection, sequence,
-        use_rs, geojson_type, band, bandidx, sampling, with_nodata, as_mask):
+    ctx,
+    input,
+    output,
+    precision,
+    indent,
+    compact,
+    projection,
+    sequence,
+    use_rs,
+    geojson_type,
+    band,
+    bandidx,
+    sampling,
+    with_nodata,
+    as_mask,
+):
     """Extracts shapes from one band or mask of a dataset and writes
     them out as GeoJSON. Unless otherwise specified, the shapes will be
     transformed to WGS 84 coordinates.
@@ -73,38 +104,42 @@ def shapes(
       $ rio shapes --as-mask --bidx 1 tests/data/RGB.byte.tif
     """
     # These import numpy, which we don't want to do unless it's needed.
-    dump_kwds = {'sort_keys': True}
+    dump_kwds = {"sort_keys": True}
     if indent:
-        dump_kwds['indent'] = indent
+        dump_kwds["indent"] = indent
     if compact:
-        dump_kwds['separators'] = (',', ':')
+        dump_kwds["separators"] = (",", ":")
 
-    stdout = click.open_file(
-        output, 'w') if output else click.get_text_stream('stdout')
+    stdout = click.open_file(output, "w") if output else click.get_text_stream("stdout")
 
     bidx = 1 if bandidx is None and band else bandidx
 
     if not sequence:
-        geojson_type = 'collection'
+        geojson_type = "collection"
 
-    geographic = True if projection == 'geographic' else False
+    geographic = True if projection == "geographic" else False
 
     try:
-        with ctx.obj['env'] as env:
+        with ctx.obj["env"] as env:
             with rasterio.open(input) as src:
                 write_features(
                     stdout,
                     feature_gen(
-                        src, env, bidx,
+                        src,
+                        env,
+                        bidx,
                         sampling=sampling,
                         band=band,
                         as_mask=as_mask,
                         with_nodata=with_nodata,
                         geographic=geographic,
-                        precision=precision),
+                        precision=precision,
+                    ),
                     sequence=sequence,
-                    geojson_type=geojson_type, use_rs=use_rs,
-                    **dump_kwds)
+                    geojson_type=geojson_type,
+                    use_rs=use_rs,
+                    **dump_kwds
+                )
     except Exception:
         logger.exception("Exception caught during processing")
         raise click.Abort()
@@ -112,7 +147,6 @@ def shapes(
 
 def feature_gen(src, env, *args, **kwargs):
     class Collection(object):
-
         def __init__(self, env):
             self.bboxes = []
             self.env = env
@@ -124,7 +158,7 @@ def feature_gen(src, env, *args, **kwargs):
 
         def __call__(self):
             for f in dataset_features(src, *args, **kwargs):
-                self.bboxes.append(f['bbox'])
+                self.bboxes.append(f["bbox"])
                 yield f
 
     return Collection(env)

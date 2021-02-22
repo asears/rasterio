@@ -1,6 +1,59 @@
 name: _rasterio
 channels:
+- conda-forge # add this?
 - defaults
 dependencies:
-- python=3.6.*
-- libgdal=2.3.*
+- python=3.8.* # 3.6 current, 3.8 should be set?
+- libgdal>=3.2.* # 2.3.* # currently 3.2.1, 2.3 conflicts with pdal.  Instead of libgdal use pdal instead?
+# added
+- boto3 # 1.17.12
+- shapely # 1.7.1
+# dev only?
+- cython #>=0.29.22
+# dev only
+- pytest # 6.2.2
+- pytest-cov # 2.11.1
+- autopep8 # 1.5.5
+- black # 
+- flake8
+- flake8-black
+- flake8-bugbear
+- hypothesis
+# for running conda develop to compile cython instead of pip -e.
+# This might require the recipe from rasterio-feedstock
+- conda-build
+# blacken-docs, blackdoc
+# may be required for GDAL windows
+# this introduces conflicts in resolution of packages
+# - pdal
+# - python-pdal
+# - gdal
+# WARNING: Detecting which files contain PREFIX is slow, installing ripgrep makes it faster. 
+- ripgrep
+# dataviewer in vscode
+- pandas
+
+#affine~=2.3.0
+#attrs>=19.2.0
+#boto3>=1.2.4
+#click~=7.1.0
+#click-plugins
+#cligj>=0.5
+#enum34; python_version < "3.4"
+#matplotlib
+#numpy>=1.10
+#snuggs~=1.4.0
+#setuptools>=20.0
+
+# Dev
+#cython~=0.29
+#delocate
+#hypothesis
+#numpydoc
+#packaging
+#pytest~=4.6.0
+#pytest-cov>=2.2.0
+#shapely
+#sphinx
+#sphinx-rtd-theme
+#wheel

@@ -65,9 +65,7 @@ def gdal_version_cb(ctx, param, value):
 @click.group()
 @cligj.verbose_opt
 @cligj.quiet_opt
-@click.option(
-    "--aws-profile", help="Select a profile from the AWS credentials file"
-)
+@click.option("--aws-profile", help="Select a profile from the AWS credentials file")
 @click.option("--aws-no-sign-requests", is_flag=True, help="Make requests anonymously")
 @click.option(
     "--aws-requester-pays", is_flag=True, help="Requester pays data transfer costs"
@@ -84,8 +82,7 @@ def main_group(
     aws_requester_pays,
     gdal_version,
 ):
-    """Rasterio command line interface.
-    """
+    """Rasterio command line interface."""
     verbosity = verbose - quiet
     configure_logging(verbosity)
     ctx.obj = {}
@@ -98,6 +95,8 @@ def main_group(
                 profile_name=aws_profile,
                 aws_unsigned=aws_no_sign_requests,
                 requester_pays=aws_requester_pays,
-            ), **envopts)
+            ),
+            **envopts
+        )
     else:
         ctx.obj["env"] = rasterio.Env(**envopts)

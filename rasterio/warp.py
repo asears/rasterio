@@ -16,13 +16,13 @@ from rasterio._warp import _calculate_default_transform, _reproject, _transform_
 # Gauss (7) is not supported for warp
 SUPPORTED_RESAMPLING = [r for r in Resampling if r.value < 7]
 GDAL2_RESAMPLING = [r for r in Resampling if r.value > 7 and r.value <= 12]
-if GDALVersion.runtime().at_least('2.0'):
+if GDALVersion.runtime().at_least("2.0"):
     SUPPORTED_RESAMPLING.extend(GDAL2_RESAMPLING)
 # sum supported since GDAL 3.1
-if GDALVersion.runtime().at_least('3.1'):
+if GDALVersion.runtime().at_least("3.1"):
     SUPPORTED_RESAMPLING.append(Resampling.sum)
 # rms supported since GDAL 3.3
-if GDALVersion.runtime().at_least('3.3'):
+if GDALVersion.runtime().at_least("3.3"):
     SUPPORTED_RESAMPLING.append(Resampling.rms)
 
 
@@ -66,17 +66,21 @@ def transform(src_crs, dst_crs, xs, ys, zs=None):
 
 
 @ensure_env
-@require_gdal_version('2.1', param='antimeridian_cutting', values=[False],
-                      is_max_version=True,
-                      reason="Antimeridian cutting is always enabled on "
-                             "GDAL >= 2.2")
+@require_gdal_version(
+    "2.1",
+    param="antimeridian_cutting",
+    values=[False],
+    is_max_version=True,
+    reason="Antimeridian cutting is always enabled on " "GDAL >= 2.2",
+)
 def transform_geom(
-        src_crs,
-        dst_crs,
-        geom,
-        antimeridian_cutting=True,
-        antimeridian_offset=10.0,
-        precision=-1):
+    src_crs,
+    dst_crs,
+    geom,
+    antimeridian_cutting=True,
+    antimeridian_offset=10.0,
+    precision=-1,
+):
     """Transform geometry from source coordinate reference system into target.
 
     Parameters
@@ -107,22 +111,11 @@ def transform_geom(
     """
 
     return _transform_geom(
-        src_crs,
-        dst_crs,
-        geom,
-        antimeridian_cutting,
-        antimeridian_offset,
-        precision)
+        src_crs, dst_crs, geom, antimeridian_cutting, antimeridian_offset, precision
+    )
 
 
-def transform_bounds(
-        src_crs,
-        dst_crs,
-        left,
-        bottom,
-        right,
-        top,
-        densify_pts=21):
+def transform_bounds(src_crs, dst_crs, left, bottom, right, top, densify_pts=21):
     """Transform bounds from src_crs to dst_crs.
 
     Optionally densifying the edges (to account for nonlinear transformations
@@ -150,7 +143,7 @@ def transform_bounds(
         Outermost coordinates in target coordinate reference system.
     """
     if densify_pts < 0:
-        raise ValueError('densify parameter must be >= 0')
+        raise ValueError("densify parameter must be >= 0")
 
     in_xs = []
     in_ys = []
@@ -162,14 +155,16 @@ def transform_bounds(
         for x in (left, right):
             in_xs.extend([x] * (densify_pts + 2))
             in_ys.extend(
-                bottom + np.arange(0, densify_pts + 2, dtype=np.float64) *
-                ((top - bottom) * densify_factor)
+                bottom
+                + np.arange(0, densify_pts + 2, dtype=np.float64)
+                * ((top - bottom) * densify_factor)
             )
 
         for y in (bottom, top):
             in_xs.extend(
-                left + np.arange(1, densify_pts + 1, dtype=np.float64) *
-                ((right - left) * densify_factor)
+                left
+                + np.arange(1, densify_pts + 1, dtype=np.float64)
+                * ((right - left) * densify_factor)
             )
             in_ys.extend([y] * densify_pts)
 
@@ -182,12 +177,27 @@ def transform_bounds(
 
 
 @ensure_env
-@require_gdal_version('2.0', param='resampling', values=GDAL2_RESAMPLING)
-def reproject(source, destination=None, src_transform=None, gcps=None, rpcs=None,
-              src_crs=None, src_nodata=None, dst_transform=None, dst_crs=None,
-              dst_nodata=None, dst_resolution=None, src_alpha=0, dst_alpha=0,
-              resampling=Resampling.nearest, num_threads=1,
-              init_dest_nodata=True, warp_mem_limit=0, **kwargs):
+@require_gdal_version("2.0", param="resampling", values=GDAL2_RESAMPLING)
+def reproject(
+    source,
+    destination=None,
+    src_transform=None,
+    gcps=None,
+    rpcs=None,
+    src_crs=None,
+    src_nodata=None,
+    dst_transform=None,
+    dst_crs=None,
+    dst_nodata=None,
+    dst_resolution=None,
+    src_alpha=0,
+    dst_alpha=0,
+    resampling=Resampling.nearest,
+    num_threads=1,
+    init_dest_nodata=True,
+    warp_mem_limit=0,
+    **kwargs
+):
     """Reproject a source raster to a destination raster.
 
     If the source and destination are ndarrays, coordinate reference
@@ -294,8 +304,10 @@ def reproject(source, destination=None, src_transform=None, gcps=None, rpcs=None
 
     # Only one type of georeferencing is permitted.
     if (src_transform and gcps) or (src_transform and rpcs) or (gcps and rpcs):
-        raise ValueError("src_transform, gcps, and rpcs are mutually "
-                         "exclusive parameters and may not be used together.")
+        raise ValueError(
+            "src_transform, gcps, and rpcs are mutually "
+            "exclusive parameters and may not be used together."
+        )
 
     # Guard against invalid or unsupported resampling algorithms.
     try:
@@ -306,15 +318,20 @@ def reproject(source, destination=None, src_transform=None, gcps=None, rpcs=None
 
     except ValueError:
         raise ValueError(
-            "resampling must be one of: {0}".format(", ".join(
-                ['Resampling.{0}'.format(r.name) for r in
-                 SUPPORTED_RESAMPLING])))
+            "resampling must be one of: {0}".format(
+                ", ".join(
+                    ["Resampling.{0}".format(r.name) for r in SUPPORTED_RESAMPLING]
+                )
+            )
+        )
 
     if destination is None and dst_transform is not None:
         raise ValueError("Must provide destination if dst_transform is provided.")
 
     # calculate the destination transform if not provided
-    if dst_transform is None and (destination is None or isinstance(destination, np.ndarray)):
+    if dst_transform is None and (
+        destination is None or isinstance(destination, np.ndarray)
+    ):
         src_bounds = tuple([None] * 4)
         if isinstance(source, np.ndarray):
             if source.ndim == 3:
@@ -322,7 +339,7 @@ def reproject(source, destination=None, src_transform=None, gcps=None, rpcs=None
             else:
                 src_count = 1
                 src_height, src_width = source.shape
-            
+
             # try to compute src_bounds if we don't have gcps
             if not (gcps or rpcs):
                 src_bounds = array_bounds(src_height, src_width, src_transform)
@@ -353,23 +370,46 @@ def reproject(source, destination=None, src_transform=None, gcps=None, rpcs=None
 
         left, bottom, right, top = src_bounds
         dst_transform, dst_width, dst_height = calculate_default_transform(
-            src_crs=src_crs, dst_crs=dst_crs, width=src_width, height=src_height,
-            left=left, bottom=bottom, right=right, top=top,
-            gcps=gcps, rpcs=rpcs, dst_width=dst_width, dst_height=dst_height,
-            resolution=dst_resolution)
+            src_crs=src_crs,
+            dst_crs=dst_crs,
+            width=src_width,
+            height=src_height,
+            left=left,
+            bottom=bottom,
+            right=right,
+            top=top,
+            gcps=gcps,
+            rpcs=rpcs,
+            dst_width=dst_width,
+            dst_height=dst_height,
+            resolution=dst_resolution,
+        )
 
         if destination is None:
-            destination = np.empty((int(dst_count), int(dst_height), int(dst_width)),
-                                   dtype=source.dtype)
+            destination = np.empty(
+                (int(dst_count), int(dst_height), int(dst_width)), dtype=source.dtype
+            )
 
     # Call the function in our extension module.
     _reproject(
-        source, destination, src_transform=src_transform, gcps=gcps, rpcs=rpcs,
-        src_crs=src_crs, src_nodata=src_nodata, dst_transform=dst_transform,
-        dst_crs=dst_crs, dst_nodata=dst_nodata, dst_alpha=dst_alpha,
-        src_alpha=src_alpha, resampling=resampling,
-        init_dest_nodata=init_dest_nodata, num_threads=num_threads,
-        warp_mem_limit=warp_mem_limit, **kwargs)
+        source,
+        destination,
+        src_transform=src_transform,
+        gcps=gcps,
+        rpcs=rpcs,
+        src_crs=src_crs,
+        src_nodata=src_nodata,
+        dst_transform=dst_transform,
+        dst_crs=dst_crs,
+        dst_nodata=dst_nodata,
+        dst_alpha=dst_alpha,
+        src_alpha=src_alpha,
+        resampling=resampling,
+        init_dest_nodata=init_dest_nodata,
+        num_threads=num_threads,
+        warp_mem_limit=warp_mem_limit,
+        **kwargs
+    )
 
     return destination, dst_transform
 
@@ -418,8 +458,21 @@ def aligned_target(transform, width, height, resolution):
 
 @ensure_env
 def calculate_default_transform(
-        src_crs, dst_crs, width, height, left=None, bottom=None, right=None,
-        top=None, gcps=None, rpcs=None, resolution=None, dst_width=None, dst_height=None, **kwargs):
+    src_crs,
+    dst_crs,
+    width,
+    height,
+    left=None,
+    bottom=None,
+    right=None,
+    top=None,
+    gcps=None,
+    rpcs=None,
+    resolution=None,
+    dst_width=None,
+    dst_height=None,
+    **kwargs
+):
     """Output dimensions and transform for a reprojection.
 
     Source and destination coordinate reference systems and output
@@ -477,23 +530,31 @@ def calculate_default_transform(
         NO:  reproject coordinates beyond valid bound limits
     """
     if any(x is not None for x in (left, bottom, right, top)) and gcps:
-        raise ValueError("Bounding values and ground control points may not"
-                         " be used together.")
+        raise ValueError(
+            "Bounding values and ground control points may not" " be used together."
+        )
     if any(x is not None for x in (left, bottom, right, top)) and rpcs:
-        raise ValueError("Bounding values and rational polynomial coefficients may not"
-                         " be used together.")
+        raise ValueError(
+            "Bounding values and rational polynomial coefficients may not"
+            " be used together."
+        )
 
     if any(x is None for x in (left, bottom, right, top)) and not (gcps or rpcs):
-        raise ValueError("Either four bounding values, ground control points,"
-                         " or rational polynomial coefficients must be specified")
-    
+        raise ValueError(
+            "Either four bounding values, ground control points,"
+            " or rational polynomial coefficients must be specified"
+        )
+
     if gcps and rpcs:
-        raise ValueError("ground control points and rational polynomial",
-                         " coefficients may not be used together.")
+        raise ValueError(
+            "ground control points and rational polynomial",
+            " coefficients may not be used together.",
+        )
 
     if (dst_width is None) != (dst_height is None):
-        raise ValueError("Either dst_width and dst_height must be specified "
-                         "or none of them.")
+        raise ValueError(
+            "Either dst_width and dst_height must be specified " "or none of them."
+        )
 
     if all(x is not None for x in (dst_width, dst_height)):
         dimensions = (dst_width, dst_height)
@@ -515,8 +576,11 @@ def calculate_default_transform(
         try:
             res = (float(resolution), float(resolution))
         except TypeError:
-            res = (resolution[0], resolution[0]) \
-                if len(resolution) == 1 else resolution[0:2]
+            res = (
+                (resolution[0], resolution[0])
+                if len(resolution) == 1
+                else resolution[0:2]
+            )
 
         # Assume yres is provided as positive,
         # needs to be negative for north-up affine
@@ -526,20 +590,27 @@ def calculate_default_transform(
         xratio = dst_affine.a / xres
         yratio = dst_affine.e / yres
 
-        dst_affine = Affine(xres, dst_affine.b, dst_affine.c,
-                            dst_affine.d, yres, dst_affine.f)
+        dst_affine = Affine(
+            xres, dst_affine.b, dst_affine.c, dst_affine.d, yres, dst_affine.f
+        )
 
         dst_width = ceil(dst_width * xratio)
         dst_height = ceil(dst_height * yratio)
-    
+
     if dimensions:
         xratio = dst_width / dimensions[0]
         yratio = dst_height / dimensions[1]
 
         dst_width = dimensions[0]
         dst_height = dimensions[1]
-        
-        dst_affine = Affine(dst_affine.a * xratio, dst_affine.b, dst_affine.c,
-                            dst_affine.d, dst_affine.e * yratio, dst_affine.f)
+
+        dst_affine = Affine(
+            dst_affine.a * xratio,
+            dst_affine.b,
+            dst_affine.c,
+            dst_affine.d,
+            dst_affine.e * yratio,
+            dst_affine.f,
+        )
 
     return dst_affine, dst_width, dst_height

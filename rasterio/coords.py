@@ -2,7 +2,7 @@
 
 from collections import namedtuple, OrderedDict
 
-_BoundingBox = namedtuple('BoundingBox', ('left', 'bottom', 'right', 'top'))
+_BoundingBox = namedtuple("BoundingBox", ("left", "bottom", "right", "top"))
 
 
 class BoundingBox(_BoundingBox):
@@ -52,8 +52,16 @@ def disjoint_bounds(bounds1, bounds2):
         raise ValueError("Bounds must both have the same orientation")
 
     if bounds1_north_up:
-        return (bounds1[0] > bounds2[2] or bounds2[0] > bounds1[2] or
-                bounds1[1] > bounds2[3] or bounds2[1] > bounds1[3])
+        return (
+            bounds1[0] > bounds2[2]
+            or bounds2[0] > bounds1[2]
+            or bounds1[1] > bounds2[3]
+            or bounds2[1] > bounds1[3]
+        )
     else:
-        return (bounds1[0] > bounds2[2] or bounds2[0] > bounds1[2] or
-                bounds1[3] > bounds2[1] or bounds2[3] > bounds1[1])
+        return (
+            bounds1[0] > bounds2[2]
+            or bounds2[0] > bounds1[2]
+            or bounds1[3] > bounds2[1]
+            or bounds2[3] > bounds1[1]
+        )

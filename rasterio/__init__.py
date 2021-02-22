@@ -9,12 +9,28 @@ from pathlib import Path
 from rasterio._base import gdal_version
 from rasterio.drivers import driver_from_extension, is_blacklisted
 from rasterio.dtypes import (
-    bool_, ubyte, sbyte, uint8, int8, uint16, int16, uint32, int32, float32, float64,
-    complex_, check_dtype)
+    bool_,
+    ubyte,
+    sbyte,
+    uint8,
+    int8,
+    uint16,
+    int16,
+    uint32,
+    int32,
+    float32,
+    float64,
+    complex_,
+    check_dtype,
+)
 from rasterio.env import ensure_env_with_credentials, Env
 from rasterio.errors import RasterioIOError, DriverCapabilityError
 from rasterio.io import (
-    DatasetReader, get_writer_for_path, get_writer_for_driver, MemoryFile)
+    DatasetReader,
+    get_writer_for_path,
+    get_writer_for_driver,
+    MemoryFile,
+)
 from rasterio.profiles import default_gtiff_profile
 from rasterio.transform import Affine, guard_transform
 from rasterio.path import parse_path
@@ -26,7 +42,7 @@ import rasterio.coords
 import rasterio.enums
 import rasterio.path
 
-__all__ = ['band', 'open', 'pad', 'Env']
+__all__ = ["band", "open", "pad", "Env"]
 __version__ = "1.3dev"
 __gdal_version__ = gdal_version()
 
@@ -40,9 +56,20 @@ log.addHandler(NullHandler())
 
 
 @ensure_env_with_credentials
-def open(fp, mode='r', driver=None, width=None, height=None, count=None,
-         crs=None, transform=None, dtype=None, nodata=None, sharing=False,
-         **kwargs):
+def open(
+    fp,
+    mode="r",
+    driver=None,
+    width=None,
+    height=None,
+    count=None,
+    crs=None,
+    transform=None,
+    dtype=None,
+    nodata=None,
+    sharing=False,
+    **kwargs
+):
     """Open a dataset for reading or writing.
 
     The dataset may be located in a local file, in a resource located by
@@ -140,7 +167,7 @@ def open(fp, mode='r', driver=None, width=None, height=None, count=None,
     """
 
     if not isinstance(fp, str):
-        if not (hasattr(fp, 'read') or hasattr(fp, 'write') or isinstance(fp, Path)):
+        if not (hasattr(fp, "read") or hasattr(fp, "write") or isinstance(fp, Path)):
             raise TypeError("invalid path or file: {0!r}".format(fp))
     if mode and not isinstance(mode, str):
         raise TypeError("invalid mode: {0!r}".format(mode))
@@ -157,10 +184,11 @@ def open(fp, mode='r', driver=None, width=None, height=None, count=None,
     if driver and is_blacklisted(driver, mode):
         raise RasterioIOError(
             "Blacklisted: file cannot be opened by "
-            "driver '{0}' in '{1}' mode".format(driver, mode))
+            "driver '{0}' in '{1}' mode".format(driver, mode)
+        )
 
     # Special case for file object argument.
-    if mode == 'r' and hasattr(fp, 'read'):
+    if mode == "r" and hasattr(fp, "read"):
 
         @contextmanager
         def fp_reader(fp):
@@ -174,14 +202,23 @@ def open(fp, mode='r', driver=None, width=None, height=None, count=None,
 
         return fp_reader(fp)
 
-    elif mode in ('w', 'w+') and hasattr(fp, 'write'):
+    elif mode in ("w", "w+") and hasattr(fp, "write"):
 
         @contextmanager
         def fp_writer(fp):
             memfile = MemoryFile()
-            dataset = memfile.open(driver=driver, width=width, height=height,
-                                   count=count, crs=crs, transform=transform,
-                                   dtype=dtype, nodata=nodata, sharing=sharing, **kwargs)
+            dataset = memfile.open(
+                driver=driver,
+                width=width,
+                height=height,
+                count=count,
+                crs=crs,
+                transform=transform,
+                dtype=dtype,
+                nodata=nodata,
+                sharing=sharing,
+                **kwargs
+            )
             try:
                 yield dataset
             finally:
@@ -203,7 +240,7 @@ def open(fp, mode='r', driver=None, width=None, height=None, count=None,
         # Create dataset instances and pass the given env, which will
         # be taken over by the dataset's context manager if it is not
         # None.
-        if mode == 'r':
+        if mode == "r":
             s = DatasetReader(path, driver=driver, sharing=sharing, **kwargs)
         elif mode == "r+":
             s = get_writer_for_path(path, driver=driver)(
@@ -214,24 +251,32 @@ def open(fp, mode='r', driver=None, width=None, height=None, count=None,
                 driver = driver_from_extension(path)
             writer = get_writer_for_driver(driver)
             if writer is not None:
-                s = writer(path, mode, driver=driver,
-                           width=width, height=height,
-                           count=count, crs=crs,
-                           transform=transform,
-                           dtype=dtype, nodata=nodata,
-                           sharing=sharing,
-                           **kwargs)
+                s = writer(
+                    path,
+                    mode,
+                    driver=driver,
+                    width=width,
+                    height=height,
+                    count=count,
+                    crs=crs,
+                    transform=transform,
+                    dtype=dtype,
+                    nodata=nodata,
+                    sharing=sharing,
+                    **kwargs
+                )
             else:
                 raise DriverCapabilityError(
                     "Writer does not exist for driver: %s" % str(driver)
                 )
         else:
             raise DriverCapabilityError(
-                "mode must be one of 'r', 'r+', or 'w', not %s" % mode)
+                "mode must be one of 'r', 'r+', or 'w', not %s" % mode
+            )
         return s
 
 
-Band = namedtuple('Band', ['ds', 'bidx', 'dtype', 'shape'])
+Band = namedtuple("Band", ["ds", "bidx", "dtype", "shape"])
 
 
 def band(ds, bidx):
@@ -276,6 +321,7 @@ def pad(array, transform, pad_width, mode=None, **kwargs):
     http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.pad.html
     """
     import numpy as np
+
     transform = guard_transform(transform)
     padded_array = np.pad(array, pad_width, mode, **kwargs)
     padded_trans = list(transform)

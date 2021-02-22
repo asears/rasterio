@@ -41,10 +41,22 @@ def sample_gen(dataset, xy, indexes=None, masked=False):
 
         row_off, col_off = index(x, y)
 
-        if row_off < 0 or col_off < 0 or row_off >= dataset.height or col_off >= dataset.width:
-            data = numpy.ones((len(indexes),), dtype=dataset.dtypes[0]) * (dataset.nodata or 0)
+        if (
+            row_off < 0
+            or col_off < 0
+            or row_off >= dataset.height
+            or col_off >= dataset.width
+        ):
+            data = numpy.ones((len(indexes),), dtype=dataset.dtypes[0]) * (
+                dataset.nodata or 0
+            )
             if masked:
-                mask = [False if MaskFlags.all_valid in dataset.mask_flag_enums[i - 1] else True for i in indexes]
+                mask = [
+                    False
+                    if MaskFlags.all_valid in dataset.mask_flag_enums[i - 1]
+                    else True
+                    for i in indexes
+                ]
                 yield numpy.ma.array(data, mask=mask)
             else:
                 yield data

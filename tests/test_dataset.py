@@ -2,6 +2,7 @@
 
 
 import os
+
 try:
     from unittest.mock import MagicMock
 except ImportError:
@@ -16,9 +17,9 @@ from rasterio.transform import Affine
 
 
 def test_files(data):
-    tif = str(data.join('RGB.byte.tif'))
-    aux = tif + '.aux.xml'
-    with open(aux, 'w'):
+    tif = str(data.join("RGB.byte.tif"))
+    aux = tif + ".aux.xml"
+    with open(aux, "w"):
         pass
     with rasterio.open(tif) as src:
         assert src.files == [tif, aux]
@@ -34,12 +35,12 @@ def test_handle_closed(path_rgb_byte_tif):
         src.files
 
 
-@pytest.mark.parametrize('tag_value', [item.value for item in Compression])
+@pytest.mark.parametrize("tag_value", [item.value for item in Compression])
 def test_dataset_compression(path_rgb_byte_tif, tag_value):
     """Compression is found from tags"""
     with rasterio.open(path_rgb_byte_tif) as dataset:
         dataset.tags = MagicMock()
-        dataset.tags.return_value = {'COMPRESSION': tag_value}
+        dataset.tags.return_value = {"COMPRESSION": tag_value}
         assert dataset.compression == Compression(tag_value)
 
 
@@ -47,8 +48,18 @@ def test_untiled_dataset_blocksize(tmpdir):
     """Blocksize is not relevant to untiled datasets (see #1689)"""
     tmpfile = str(tmpdir.join("test.tif"))
     with rasterio.open(
-            tmpfile, "w", driver="GTiff", count=1, height=13, width=23, dtype="uint8", crs="epsg:3857",
-            transform=Affine.identity(), blockxsize=64, blockysize=64) as dataset:
+        tmpfile,
+        "w",
+        driver="GTiff",
+        count=1,
+        height=13,
+        width=23,
+        dtype="uint8",
+        crs="epsg:3857",
+        transform=Affine.identity(),
+        blockxsize=64,
+        blockysize=64,
+    ) as dataset:
         pass
 
     with rasterio.open(tmpfile) as dataset:

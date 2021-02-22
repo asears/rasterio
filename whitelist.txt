@@ -1,0 +1,6 @@
+rasterio
+EPSGA
+libgdal
+conda
+pytest
+cython
